@@ -1,0 +1,141 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null && request.auth.uid != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    function isValidUserProfile(data) {
+      return (!('email' in data) || data.email is string)
+        && (!('settings' in data) || data.settings is map)
+        && (!('habits' in data) || data.habits is map)
+        && (!('user' in data) || data.user is map)
+        && (!('productivity' in data) || data.productivity is map)
+        && (!('updatedAt' in data) || data.updatedAt is timestamp || data.updatedAt is number);
+    }
+
+      // ---- System Stats ----
+      match /system/stats {
+        allow get: if isSignedIn();
+        allow create: if isSignedIn() && incoming().keys().hasAll(['activeToday']) && incoming().keys().size() == 1 && incoming().activeToday is number;
+        allow update: if isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['activeToday']) && incoming().activeToday is number;
+      }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUserProfile(incoming());
+
+      allow update: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUserProfile(incoming());
+      
+      allow delete: if false;
+
+      // ---- WaterLogs ----
+      match /waterLogs/{date} {
+        function isValidWaterLog(data) {
+          return data.keys().hasAll(['amount'])
+                 && data.amount is number
+                 && (!('updatedAt' in data) || data.updatedAt is number);
+        }
+
+        allow get: if isOwner(userId) && isValidId(date);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(date) && isValidWaterLog(incoming());
+        allow update: if isOwner(userId) && isValidId(date) && isValidWaterLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(date);
+      }
+
+      // ---- StepsLogs ----
+      match /stepsLogs/{date} {
+        function isValidStepLog(data) {
+          return data.keys().hasAll(['amount'])
+                 && data.amount is number
+                 && (!('details' in data) || data.details is list)
+                 && (!('updatedAt' in data) || data.updatedAt is number);
+        }
+
+        allow get: if isOwner(userId) && isValidId(date);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(date) && isValidStepLog(incoming());
+        allow update: if isOwner(userId) && isValidId(date) && isValidStepLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(date);
+      }
+
+      // ---- MoodLogs ----
+      match /moodLogs/{date} {
+        function isValidMoodLog(data) {
+          return data.keys().hasAll(['date', 'moodValue'])
+                 && data.date is string && data.date.size() <= 15
+                 && data.moodValue is number
+                 && (!('sleepValue' in data) || data.sleepValue is number)
+                 && (!('sleepStart' in data) || data.sleepStart is string)
+                 && (!('sleepEnd' in data) || data.sleepEnd is string)
+                 && (!('sleepDuration' in data) || data.sleepDuration is number)
+                 && (!('factors' in data) || data.factors is list)
+                 && (!('notes' in data) || data.notes is string)
+                 && (!('updatedAt' in data) || data.updatedAt is number);
+        }
+
+        allow get: if isOwner(userId) && isValidId(date);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(date) && isValidMoodLog(incoming());
+        allow update: if isOwner(userId) && isValidId(date) && isValidMoodLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(date);
+      }
+
+      // ---- Tasks ----
+      match /tasks/{taskId} {
+        function isValidTask(data) {
+          return data.keys().hasAll(['title'])
+                 && data.title is string && data.title.size() <= 150
+                 && (!('time' in data) || data.time is string)
+                 && (!('type' in data) || data.type is string)
+                 && (!('completed' in data) || data.completed is bool)
+                 && (!('priority' in data) || data.priority is bool)
+                 && (!('priorityLevel' in data) || data.priorityLevel is string)
+                 && (!('scheduleId' in data) || data.scheduleId is string)
+                 && (!('subTasks' in data) || data.subTasks is list)
+                 && (!('updatedAt' in data) || data.updatedAt is number);
+        }
+
+        allow get: if isOwner(userId) && isValidId(taskId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow update: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow delete: if isOwner(userId) && isValidId(taskId);
+      }
+
+      // ---- Schedules ----
+      match /schedules/{scheduleId} {
+        function isValidSchedule(data) {
+          return data.keys().hasAll(['className'])
+                 && data.className is string && data.className.size() <= 150
+                 && (!('room' in data) || data.room is string)
+                 && (!('day' in data) || data.day is number)
+                 && (!('startTime' in data) || data.startTime is string)
+                 && (!('endTime' in data) || data.endTime is string)
+                 && (!('startDate' in data) || data.startDate is string)
+                 && (!('endDate' in data) || data.endDate is string)
+                 && (!('updatedAt' in data) || data.updatedAt is number);
+        }
+
+        allow get: if isOwner(userId) && isValidId(scheduleId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(scheduleId) && isValidSchedule(incoming());
+        allow update: if isOwner(userId) && isValidId(scheduleId) && isValidSchedule(incoming());
+        allow delete: if isOwner(userId) && isValidId(scheduleId);
+      }
+    }
+  }
+}

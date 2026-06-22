@@ -1,0 +1,70 @@
+{
+  "packageId": "app.web.gen_lang_client_0372542646.twa",
+  "host": "gen-lang-client-0372542646.web.app",
+  "name": "MoodBloom - Student Wellness Tracker",
+  "launcherName": "MoodBloom",
+  "display": "standalone",
+  "themeColor": "#3B82F6",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#020617",
+  "enableNotifications": true,
+  "startUrl": "https://gen-lang-client-0372542646.web.app",
+  "iconUrl": "https://gen-lang-client-0372542646.web.app/logo512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "C:\\Users\\ACER\\WebstormProjects\\wellness-tracker\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Catat Mood",
+      "shortName": "Mood",
+      "url": "https://gen-lang-client-0372542646.web.app/?tab=wellness",
+      "chosenIconUrl": "https://gen-lang-client-0372542646.web.app/logo192.png"
+    },
+    {
+      "name": "Sesi Fokus",
+      "shortName": "Fokus",
+      "url": "https://gen-lang-client-0372542646.web.app/?tab=productivity",
+      "chosenIconUrl": "https://gen-lang-client-0372542646.web.app/logo192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://gen-lang-client-0372542646.web.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    },
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://gen-lang-client-0372542646.web.app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "standalone",
+    "fullscreen",
+    "minimal-ui"
+  ],
+  "appVersion": "1"
+}
