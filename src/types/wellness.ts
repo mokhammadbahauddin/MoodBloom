@@ -72,7 +72,7 @@ export interface UserSettings {
   waterGoalML: number;
   theme: "system" | "light" | "dark";
   accent: "blue" | "green" | "orange" | "purple";
-  googleFitConnected: boolean;
+  stravaConnected: boolean;
   appleHealthConnected: boolean;
 }
 

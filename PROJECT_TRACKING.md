@@ -377,3 +377,10 @@
 - **Local Configurations Updated**: Updated [firebase-applet-config.json](file:///C:/Users/ACER/Projects/web/wellness-tracker/firebase-applet-config.json) and [.firebaserc](file:///C:/Users/ACER/Projects/web/wellness-tracker/.firebaserc) to point to the new project configurations.
 - **Type-Check Verification**: Ran `npx tsc --noEmit` which compiled cleanly with zero errors.
 - **Status**: Local config is ready. Next steps are manual setups in Firebase Console for Auth, Firestore provision, and Security Rules deployment.
+
+## [2026-06-23] - Strava Integration & Deprecated Google Fit Removal
+- **Removed Deprecated Google Fit API**: Cleanly purged the obsolete Google Fit integration, deleting `googleFit.ts` service and references across `useSensorSync.ts`, `settingsStore.ts`, and `Steps.tsx`.
+- **Created Strava Service**: Built `src/services/strava.ts` containing the OAuth 2.0 redirect helper and activity step/distance parsing logic.
+- **Implemented Auto-Refreshing Backend Sync**: Added `/api/strava/token` and `/api/strava/refresh` endpoints in both `server.ts` and `api/index.ts` to handle code exchange and background access token refreshing.
+- **Updated Settings & UI**: Configured `settingsStore.ts` and `Steps.tsx` to handle Strava connection states, showing sync buttons, and providing a clean disconnect handler.
+- **Status**: Google Fit is removed and replaced by a fully functioning, auto-refreshing Strava sync. Verified type-safe.

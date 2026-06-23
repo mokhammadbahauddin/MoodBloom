@@ -8,10 +8,10 @@ export interface AppSettings {
   waterGoalML: number; // in ml
   theme: "system" | "light" | "dark";
   accent: "blue" | "green" | "orange" | "purple";
-  googleFitConnected?: boolean;
-  googleFitAccessToken?: string;
-  googleFitRefreshToken?: string;
-  googleFitExpiresAt?: number;
+  stravaConnected?: boolean;
+  stravaAccessToken?: string;
+  stravaRefreshToken?: string;
+  stravaExpiresAt?: number;
   appleHealthConnected?: boolean;
   religion: "islam" | "other"; // To toggle Islamic features
   manualLocation?: string; // e.g. "Jakarta, Indonesia"
@@ -55,7 +55,7 @@ export const useSettingsStore = create<SettingsState>()(
           water: true,
           mood: true,
         },
-        googleFitConnected: false,
+        stravaConnected: false,
         appleHealthConnected: false,
       },
       syncStatus: 'saved',

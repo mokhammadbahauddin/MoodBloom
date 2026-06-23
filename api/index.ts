@@ -116,6 +116,66 @@ app.post("/api/gemini", async (req, res) => {
   }
 });
 
+// API route to exchange Strava auth code for tokens
+app.post("/api/strava/token", async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: "Missing authorization code" });
+
+    const response = await fetch("https://www.strava.com/api/v3/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: process.env.VITE_STRAVA_CLIENT_ID || "233128",
+        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        code,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Strava Token Exchange failed: ${errText}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error("Strava Token Exchange Error:", error);
+    res.status(500).json({ error: error.message || "Failed to exchange Strava token" });
+  }
+});
+
+// API route to refresh Strava access token
+app.post("/api/strava/refresh", async (req, res) => {
+  try {
+    const { refresh_token } = req.body;
+    if (!refresh_token) return res.status(400).json({ error: "Missing refresh token" });
+
+    const response = await fetch("https://www.strava.com/api/v3/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: process.env.VITE_STRAVA_CLIENT_ID || "233128",
+        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        refresh_token,
+        grant_type: "refresh_token",
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Strava Token Refresh failed: ${errText}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error("Strava Token Refresh Error:", error);
+    res.status(500).json({ error: error.message || "Failed to refresh Strava token" });
+  }
+});
+
 // API route for getting a daily affirmation
 app.get("/api/affirmation", async (req, res) => {
   try {

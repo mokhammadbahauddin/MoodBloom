@@ -27,7 +27,7 @@ import SettingsPage from "./components/Settings";
 import Prayer from "./components/Prayer";
 import QuickActionSheet from "./components/QuickActionSheet";
 import AIAssistantTab from "./components/AIAssistantTab";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { useNotifications } from "./lib/useNotifications";
 import { useSensorSync } from "./lib/useSensorSync";
 import { useUserStore, DEFAULT_ACHIEVEMENTS } from "./lib/userStore";
@@ -319,7 +319,7 @@ export default function App() {
             water: true,
             mood: true,
           },
-          googleFitConnected: false,
+          stravaConnected: false,
           appleHealthConnected: false,
         });
 
@@ -385,19 +385,36 @@ export default function App() {
   }, [setWeather]);
 
   useEffect(() => {
-    // Handle OAuth callbacks...
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.replace("#", "?"));
-      const token = params.get("access_token");
-      if (token) {
-        updateSettings({ 
-          googleFitConnected: true,
-          googleFitAccessToken: token,
-          googleFitExpiresAt: Date.now() + 3600 * 1000
+    // Handle Strava OAuth callback...
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    if (code) {
+      fetch("/api/strava/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to exchange Strava token");
+          return res.json();
+        })
+        .then((data) => {
+          updateSettings({
+            stravaConnected: true,
+            stravaAccessToken: data.access_token,
+            stravaRefreshToken: data.refresh_token,
+            stravaExpiresAt: data.expires_at * 1000,
+          });
+          toast.success("Koneksi Strava berhasil!", { icon: "🚴" });
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch((err) => {
+          console.error("Strava OAuth Error:", err);
+          toast.error("Gagal menghubungkan ke Strava.");
+          window.history.replaceState({}, document.title, window.location.pathname);
         });
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
     }
 
     const root = document.documentElement;

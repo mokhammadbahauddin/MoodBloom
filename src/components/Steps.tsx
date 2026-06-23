@@ -40,13 +40,12 @@ export default function Steps() {
   const [isSensorActive, setIsSensorActive] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const { settings, updateSettings } = useSettingsStore();
-  const isConnectedFit = settings.googleFitConnected && settings.googleFitAccessToken && (!settings.googleFitExpiresAt || Date.now() < settings.googleFitExpiresAt);
-  const isExpiredFit = settings.googleFitConnected && (!settings.googleFitAccessToken || (settings.googleFitExpiresAt && Date.now() >= settings.googleFitExpiresAt));
+  const isConnectedStrava = settings.stravaConnected && settings.stravaAccessToken;
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleConnectFit = async () => {
-    const { initiateGoogleFitAuth } = await import("../services/googleFit");
-    initiateGoogleFitAuth();
+  const handleConnectStrava = async () => {
+    const { initiateStravaAuth } = await import("../services/strava");
+    initiateStravaAuth();
   };
 
   const handleRefreshSync = async () => {
@@ -56,18 +55,47 @@ export default function Steps() {
        let totalAdded = 0;
        const state = useHabitsStore.getState();
        
-       if (isConnectedFit && settings.googleFitAccessToken) {
-         const { fetchGoogleFitSteps } = await import("../services/googleFit");
-         const total = await fetchGoogleFitSteps(settings.googleFitAccessToken);
+       if (isConnectedStrava && settings.stravaAccessToken) {
+         let token = settings.stravaAccessToken;
+         const isExpired = settings.stravaExpiresAt ? Date.now() > settings.stravaExpiresAt : true;
+         if (isExpired && settings.stravaRefreshToken) {
+           const refreshRes = await fetch("/api/strava/refresh", {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({ refresh_token: settings.stravaRefreshToken }),
+           });
+           if (refreshRes.ok) {
+             const refreshData = await refreshRes.json();
+             token = refreshData.access_token;
+             updateSettings({
+               stravaAccessToken: refreshData.access_token,
+               stravaRefreshToken: refreshData.refresh_token,
+               stravaExpiresAt: refreshData.expires_at * 1000,
+             });
+           } else {
+             updateSettings({
+               stravaConnected: false,
+               stravaAccessToken: undefined,
+               stravaRefreshToken: undefined,
+               stravaExpiresAt: undefined,
+             });
+             toast.error("Sesi Strava telah kedaluwarsa. Silakan hubungkan kembali.");
+             setIsSyncing(false);
+             return;
+           }
+         }
+
+         const { fetchStravaSteps } = await import("../services/strava");
+         const { steps: total } = await fetchStravaSteps(token);
          
          const currentDetailed = state.detailedStepsLogs[today] || [];
          const sourceTotalSoFar = currentDetailed
-            .filter((l: any) => l.source === "google_fit")
+            .filter((l: any) => l.source === "strava")
             .reduce((sum: number, l: any) => sum + l.amount, 0);
          
          const delta = Math.max(0, total - sourceTotalSoFar);
          if (delta > 0) {
-            logSteps(today, total, "set", "google_fit");
+            logSteps(today, total, "set", "strava");
             totalAdded += delta;
          }
        }
@@ -252,35 +280,26 @@ export default function Steps() {
               </h3>
               
               <div className="space-y-4 mb-6">
-                 {/* Google Fit */}
-                 <div className="flex items-center justify-between p-3 bg-surface-container rounded-xl border border-outline/5">
-                    <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm text-on-surface">
-                          <Smartphone size={18} />
-                       </div>
-                       <span className="text-xs font-bold text-on-surface">Google Fit</span>
-                    </div>
-                    {isConnectedFit ? (
+                  {/* Strava */}
+                  <div className="flex items-center justify-between p-3 bg-surface-container rounded-xl border border-outline/5">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#FC642D] text-white rounded-lg flex items-center justify-center shadow-sm">
+                           <Activity size={18} />
+                        </div>
+                        <span className="text-xs font-bold text-on-surface">Strava</span>
+                     </div>
+                     {isConnectedStrava ? (
                         <div className="flex items-center gap-2">
                            <button onClick={handleRefreshSync} disabled={isSyncing} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all">
                               <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
                               {isSyncing ? "Syncing..." : "Sync"}
                            </button>
-                           <button onClick={() => { updateSettings({ googleFitConnected: false, googleFitAccessToken: undefined, googleFitExpiresAt: undefined }); toast.success("Google Fit diputuskan"); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Putuskan Google Fit">
-                              <Trash2 size={14} />
-                           </button>
-                        </div>
-                     ) : isExpiredFit ? (
-                        <div className="flex items-center gap-2">
-                           <button onClick={handleConnectFit} className="px-3 py-1.5 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-amber-500/20 transition-all">
-                              Hubungkan Kembali (Expired)
-                           </button>
-                           <button onClick={() => { updateSettings({ googleFitConnected: false, googleFitAccessToken: undefined, googleFitExpiresAt: undefined }); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Hapus Sesi">
+                           <button onClick={() => { updateSettings({ stravaConnected: false, stravaAccessToken: undefined, stravaRefreshToken: undefined, stravaExpiresAt: undefined }); toast.success("Koneksi Strava diputuskan"); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Putuskan Strava">
                               <Trash2 size={14} />
                            </button>
                         </div>
                      ) : (
-                        <button onClick={handleConnectFit} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-wider">
+                        <button onClick={handleConnectStrava} className="px-3 py-1.5 bg-[#FC642D] text-white rounded-lg text-xs font-black uppercase tracking-wider hover:bg-[#FC642D]/90 transition-all">
                            Hubungkan
                         </button>
                      )}
