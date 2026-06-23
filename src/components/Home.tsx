@@ -459,7 +459,7 @@ export default function Home({
         <motion.div
           variants={itemVariants}
           whileHover={{ y: -2 }}
-          onClick={() => onNavigate && onNavigate("health")}
+          onClick={() => onNavigate && onNavigate("health", "water")}
           className="glass-panel rounded-2xl p-6 bg-primary/5 border border-primary/20 shadow-sm flex flex-col justify-between cursor-pointer group min-h-[200px]"
         >
           <div className="flex justify-between items-start">
