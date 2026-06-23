@@ -6,3 +6,21 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local IDE and agent configurations
+.idea/
+.vscode/
+.agents/
+.gemini/
+.claude/
+.junie/
+.windsurf/
+
+# Build caches & deployment tools
+.gradle/
+.firebase/
+
+# Android Keystore & Private Keys
+*.keystore
+*.jks
+local.properties
