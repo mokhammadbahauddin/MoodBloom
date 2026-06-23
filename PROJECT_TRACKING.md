@@ -371,6 +371,9 @@
 - **Model Fallback Loop (`server.ts`)**: Integrated an automatic model-fallback loop. If `gemini-2.5-flash` fails due to 503 Service Unavailable / High Demand limits, the server instantly retries the query with `gemini-2.0-flash`.
 - **Status**: Verified and compiled cleanly with zero errors.
 
-
-
-
+## [2026-06-23] - Firebase Project Migration
+- **Project Created**: Provisioned a new Firebase project named "MoodBloom" with globally unique Project ID `moodbloom-app-623b`.
+- **Web App Registered**: Registered a web application `moodbloom-web` inside the project to obtain application API credentials.
+- **Local Configurations Updated**: Updated [firebase-applet-config.json](file:///C:/Users/ACER/Projects/web/wellness-tracker/firebase-applet-config.json) and [.firebaserc](file:///C:/Users/ACER/Projects/web/wellness-tracker/.firebaserc) to point to the new project configurations.
+- **Type-Check Verification**: Ran `npx tsc --noEmit` which compiled cleanly with zero errors.
+- **Status**: Local config is ready. Next steps are manual setups in Firebase Console for Auth, Firestore provision, and Security Rules deployment.

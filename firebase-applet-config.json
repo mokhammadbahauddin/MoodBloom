@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0372542646",
-  "appId": "1:315027521702:web:3d2aa84d7e367acc033467",
-  "apiKey": "AIzaSyD8nDjMk6kRgCd8gWfOtxznacIug313nME",
-  "authDomain": "gen-lang-client-0372542646.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-5861741a-fbc4-4dc7-8efc-d94edcc3c3d9",
-  "storageBucket": "gen-lang-client-0372542646.firebasestorage.app",
-  "messagingSenderId": "315027521702",
+  "projectId": "moodbloom-app-623b",
+  "appId": "1:914013003538:web:63026520fd1ca23639ddcb",
+  "apiKey": "AIzaSyBfO2hD_TdJvKoc4DNmAx02xjT0lXGri-U",
+  "authDomain": "moodbloom-app-623b.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "moodbloom-app-623b.firebasestorage.app",
+  "messagingSenderId": "914013003538",
   "measurementId": ""
 }
