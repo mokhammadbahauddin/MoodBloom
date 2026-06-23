@@ -40,7 +40,8 @@ export default function Steps() {
   const [isSensorActive, setIsSensorActive] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const { settings, updateSettings } = useSettingsStore();
-  const isConnectedFit = settings.googleFitConnected;
+  const isConnectedFit = settings.googleFitConnected && settings.googleFitAccessToken && (!settings.googleFitExpiresAt || Date.now() < settings.googleFitExpiresAt);
+  const isExpiredFit = settings.googleFitConnected && (!settings.googleFitAccessToken || (settings.googleFitExpiresAt && Date.now() >= settings.googleFitExpiresAt));
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleConnectFit = async () => {
@@ -260,20 +261,29 @@ export default function Steps() {
                        <span className="text-xs font-bold text-on-surface">Google Fit</span>
                     </div>
                     {isConnectedFit ? (
-                       <div className="flex items-center gap-2">
-                          <button onClick={handleRefreshSync} disabled={isSyncing} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all">
-                             <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
-                             {isSyncing ? "Syncing..." : "Sync"}
-                          </button>
-                          <button onClick={() => { updateSettings({ googleFitConnected: false, googleFitAccessToken: null }); toast.success("Google Fit diputuskan"); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Putuskan Google Fit">
-                             <Trash2 size={14} />
-                          </button>
-                       </div>
-                    ) : (
-                       <button onClick={handleConnectFit} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-wider">
-                          Hubungkan
-                       </button>
-                    )}
+                        <div className="flex items-center gap-2">
+                           <button onClick={handleRefreshSync} disabled={isSyncing} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-emerald-500/20 transition-all">
+                              <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
+                              {isSyncing ? "Syncing..." : "Sync"}
+                           </button>
+                           <button onClick={() => { updateSettings({ googleFitConnected: false, googleFitAccessToken: undefined, googleFitExpiresAt: undefined }); toast.success("Google Fit diputuskan"); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Putuskan Google Fit">
+                              <Trash2 size={14} />
+                           </button>
+                        </div>
+                     ) : isExpiredFit ? (
+                        <div className="flex items-center gap-2">
+                           <button onClick={handleConnectFit} className="px-3 py-1.5 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-lg text-xs font-black uppercase tracking-wider hover:bg-amber-500/20 transition-all">
+                              Hubungkan Kembali (Expired)
+                           </button>
+                           <button onClick={() => { updateSettings({ googleFitConnected: false, googleFitAccessToken: undefined, googleFitExpiresAt: undefined }); }} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-lg transition-all" title="Hapus Sesi">
+                              <Trash2 size={14} />
+                           </button>
+                        </div>
+                     ) : (
+                        <button onClick={handleConnectFit} className="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-black uppercase tracking-wider">
+                           Hubungkan
+                        </button>
+                     )}
                  </div>
 
               </div>

@@ -19,6 +19,17 @@ export function useSensorSync() {
 
         // Google Fit Sync
         if (settings?.googleFitConnected && settings?.googleFitAccessToken) {
+          const isExpired = settings.googleFitExpiresAt ? Date.now() > settings.googleFitExpiresAt : false;
+          if (isExpired) {
+            useSettingsStore.getState().updateSettings({
+              googleFitConnected: false,
+              googleFitAccessToken: undefined,
+              googleFitExpiresAt: undefined,
+            });
+            toast.error("Sesi sinkronisasi Google Fit telah berakhir. Silakan hubungkan kembali.", { id: "google-fit-expired" });
+            return;
+          }
+
           const { fetchGoogleFitSteps } = await import("../services/googleFit");
           const totalSteps = await fetchGoogleFitSteps(settings.googleFitAccessToken!);
           
