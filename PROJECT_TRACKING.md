@@ -384,3 +384,10 @@
 - **Implemented Auto-Refreshing Backend Sync**: Added `/api/strava/token` and `/api/strava/refresh` endpoints in both `server.ts` and `api/index.ts` to handle code exchange and background access token refreshing.
 - **Updated Settings & UI**: Configured `settingsStore.ts` and `Steps.tsx` to handle Strava connection states, showing sync buttons, and providing a clean disconnect handler.
 - **Status**: Google Fit is removed and replaced by a fully functioning, auto-refreshing Strava sync. Verified type-safe.
+
+## [2026-06-23] - SyncService Decoupling (Architecture Refactoring)
+- **Introduced SyncableStore Seam**: Defined the [SyncableStore.ts](file:///C:/Users/ACER/Projects/web/wellness-tracker/src/services/SyncableStore.ts) interface to abstract serializable data extraction, subscription, and custom conflict merging logic from concrete Zustand stores.
+- **Created Store Adapters**: Grouped store-specific properties and merge strategies (LWW and detailed steps array-merging) in [syncStores.ts](file:///C:/Users/ACER/Projects/web/wellness-tracker/src/services/syncStores.ts), isolating raw store dependencies.
+- **Generic Coordinator**: Rewrote [syncService.ts](file:///C:/Users/ACER/Projects/web/wellness-tracker/src/services/syncService.ts) to coordinate synchronizations dynamically with any list of `SyncableStore` instances, decoupling it entirely from state schemas and specific metric properties.
+- **Initialized in App**: Updated [App.tsx](file:///C:/Users/ACER/Projects/web/wellness-tracker/src/App.tsx) to pass the concrete adapters to the new generic `SyncService`.
+- **Status**: Core synchronization architecture decoupled, deep, and fully unit-testable. Verified type-safe.

@@ -40,8 +40,9 @@ import Onboarding from "./components/Onboarding";
 import DeepFocusOverlay from "./components/DeepFocusOverlay";
 import { SyncService } from "./services/syncService";
 import { FirebaseStorageAdapter } from "./services/FirebaseStorageAdapter";
+import { getSyncStores } from "./services/syncStores";
 
-const syncService = new SyncService(new FirebaseStorageAdapter());
+const syncService = new SyncService(new FirebaseStorageAdapter(), getSyncStores());
 import { HomeSkeleton } from "./components/Skeleton";
 import InstallPrompt from "./components/InstallPrompt";
 import AIBrainObserver from "./components/AIBrainObserver";
