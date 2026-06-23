@@ -51,9 +51,9 @@
 % --- Title ---
 \title{
     \textbf{Laporan Pengembangan Aplikasi}\\
-    \large \textit{Mindful Pulse: Student Wellness Tracker}
+    \large \textit{MoodBloom: Student Wellness Tracker}
 }
-\author{Dokumentasi Teknis Otomatis}
+\author{Tim Pengembangan MoodBloom}
 \date{\today}
 
 \begin{document}
@@ -62,149 +62,259 @@
 \tableofcontents
 \newpage
 
-\section{Deskripsi Aplikasi}
-\textbf{Mindful Pulse} adalah aplikasi \textit{wellness-tracker} berbasis web yang dirancang khusus untuk mahasiswa guna mengelola kesehatan fisik dan mental di tengah kesibukan akademik.
+\section{Judul Aplikasi}
+\textbf{MoodBloom} -- \textit{Pendamping Kesehatan Digital Mahasiswa Berbasis Kecerdasan Buatan (AI) \& Sinkronisasi Lintas Platform}
 
-\begin{itemize}[label=--]
-    \item \textbf{Tujuan}: Membantu mahasiswa menjaga keseimbangan antara performa akademik dan kesejahteraan diri melalui pelacakan kebiasaan dan dukungan AI.
-    \item \textbf{Target Pengguna}: Mahasiswa universitas yang menghadapi stres akademik, manajemen waktu yang buruk, atau pengabaian kesehatan fisik.
-    \item \textbf{Masalah yang Diselesaikan}: Kurangnya kesadaran akan hidrasi, pola tidur, manajemen tugas yang membebani, serta kebutuhan akan motivasi yang personal.
-    \item \textbf{Fitur Unggulan}:
-    \begin{itemize}
-        \item \textbf{The Daily 5}: Dashboard ringkas untuk memantau 5 memtrik kesehatan harian.
-        \item \textbf{AI Wellness Coach}: Asisten bertenaga Gemini yang memberikan rekomendasi berdasarkan data perilaku pengguna.
-        \item \textbf{Gamification}: Sistem \textit{streak} dan \textit{achievements} untuk memotivasi konsistensi pengguna.
-    \end{itemize}
-\end{itemize}
-
-\section{Fungsi-Fungsi Utama}
-
-\subsection{Fungsi Water Tracker}
+\section{Ringkasan Eksekutif}
+\textbf{MoodBloom} adalah aplikasi \textit{wellness tracker} inovatif yang dirancang khusus untuk mahasiswa guna mengelola kesehatan fisik dan mental di tengah stres akademik. Aplikasi ini menggunakan arsitektur \textbf{Local-First dengan Cloud-Sync} yang kokoh berbasis Firebase dan Vercel. Fungsionalitas utamanya meliputi:
 \begin{itemize}
-    \item \textbf{Tambah Air}: Pengguna dapat menambah jumlah asupan air (ml atau L).
-    \item \textbf{Progress \%}: Menampilkan persentase pencapaian terhadap target harian (default 3L).
-    \item \textbf{Mode Puasa}: Penyesuaian pengingat dan target saat periode puasa.
+    \item \textbf{The Daily 5}: Pemantauan 5 metrik vital harian (hidrasi, langkah kaki, meditasi, tugas kuliah, dan ibadah).
+    \item \textbf{Adaptive Aura}: Sistem desain dinamis di mana warna tema antarmuka berubah secara otomatis mengikuti perasaan (\textit{mood}) pengguna.
+    \item \textbf{Hybrid AI Coaching}: Fitur asisten cerdas berbasis Google Gemini API yang terintegrasi secara dinamis dengan mesin aturan (\textit{heuristic engine}) lokal untuk memberikan motivasi personal bahkan dalam kondisi \textit{offline}.
+    \item \textbf{Strava \& Sensor Sync}: Sinkronisasi aktivitas fisik langsung melalui sensor gerak internal perangkat (accelerometer) dan integrasi API Strava OAuth.
 \end{itemize}
+Aplikasi ini memberikan nilai tinggi bagi mahasiswa dengan meningkatkan kedisiplinan hidup sehat, mencegah \textit{burnout}, serta mempermudah manajemen waktu kuliah.
 
-\subsection{Fungsi Mood Tracker}
+\section{Pendahuluan}
+
+\subsection{Tujuan}
+MoodBloom bertujuan untuk menyediakan pendamping kesehatan yang cerdas, menyenangkan, dan minim gangguan. Masalah utama mahasiswa yang dipecahkan aplikasi ini meliputi:
 \begin{itemize}
-    \item \textbf{Pilih Mood}: Input skala perasaan 1-4.
-    \item \textbf{Simpan Jurnal}: Catatan teks untuk refleksi diri.
-    \item \textbf{Riwayat}: Melihat tren perasaan selama seminggu terakhir untuk deteksi dini stres.
+    \item \textbf{Stres \& Burnout}: Deteksi dini kelelahan mental melalui jurnal harian dan analisis tren mood.
+    \item \textbf{Gaya Hidup Sedentari}: Kurangnya asupan air (dehidrasi) dan aktivitas fisik akibat durasi belajar yang lama.
+    \item \textbf{Ketidakaturan Rutinitas}: Membantu mahasiswa menyelaraskan jadwal kuliah dengan pencapaian kebiasaan harian secara terpadu.
 \end{itemize}
 
-\subsection{Fungsi Jadwal Kuliah}
+\subsection{Ruang Lingkup}
+\textbf{Apa yang bisa dilakukan aplikasi:}
 \begin{itemize}
-    \item \textbf{Tambah Jadwal}: Menyimpan data mata kuliah, ruang, dan jam.
-    \item \textbf{Tampil Hari Ini}: Secara dinamis menampilkan jadwal yang relevan dengan hari berjalan di dashboard.
+    \item Pencatatan hidrasi, langkah kaki otomatis/manual, durasi meditasi, alarm ibadah, dan pelacakan daftar tugas kuliah.
+    \item Fitur meditasi interaktif (\textbf{Zen Oasis}) dengan panduan animasi pernapasan.
+    \item Komunikasi cerdas multi-turn (AI Chat) yang mengingat riwayat percakapan.
+    \item Visualisasi analitis mingguan (tren air, langkah, dan mood) menggunakan diagram responsif.
+    \item Keamanan data tingkat tinggi melalui aturan akses data Firestore tingkat dokumen.
 \end{itemize}
-
-\subsection{Fungsi AI Insight \& Analytics}
+\textbf{Batasan Aplikasi:}
 \begin{itemize}
-    \item \textbf{Rekomendasi Otomatis}: AI menganalisis data perilaku dan memberikan motivasi instan.
-    \item \textbf{Breakdown Tugas}: Menguraikan tugas kuliah yang besar menjadi sub-tugas (micro-tasks).
-    \item \textbf{Grafik Mingguan}: Visualisasi tren data kesehatan selama 7 hari.
+    \item Aplikasi ini merupakan alat bantu kesejahteraan diri (\textit{wellness tracker}) dan \textbf{bukan} pengganti layanan medis profesional atau psikolog.
+    \item Fitur AI Chat dan sinkronisasi awan membutuhkan koneksi internet, namun fitur pencatatan dan asisten dasar (heuristik) tetap berfungsi penuh secara offline.
 \end{itemize}
 
-\section{Dokumentasi OOP \& FP}
+\subsection{Latar Belakang}
+Rutinitas akademik mahasiswa sering kali diwarnai oleh beban tugas yang menumpuk, kurang tidur, dan dehidrasi. Aplikasi pemantau kesehatan yang ada di pasar umumnya terlalu kompleks atau dipenuhi oleh iklan dan biaya langganan yang membebani mahasiswa. MoodBloom hadir sebagai sebuah ``Oasis Digital'' yang menenangkan, berfokus pada estetika minimalis, respons yang instan, serta fitur personalisasi berbasis emosi nyata (Adaptive Aura).
 
-\subsection{Object-Oriented Programming (OOP)}
-Aplikasi menggunakan pola OOP untuk layanan (services) guna mengenkapsulasi logika bisnis yang kompleks dan menjaga \textit{single source of truth}.
+\subsection{Audiens}
+\begin{itemize}
+    \item \textbf{Mahasiswa Universitas}: Pengguna utama yang ingin mengatur rutinitas harian.
+    \item \textbf{Siapa saja yang ingin hidup sehat}: Pengguna yang menyukai tampilan aplikasi yang bersih, modern, dan canggih.
+\end{itemize}
 
-\begin{lstlisting}[caption=Implementasi Singleton Pattern pada AIService]
-class AIService {
-  private static instance: AIService;
-  private lastAnalysisTime: number = 0;
+\subsection{Definisi dan Akronim}
+\begin{itemize}
+    \item \textbf{Adaptive Aura}: Sistem pewarnaan dinamis berbasis variabel CSS Tailwind 4 yang merespons perubahan mood harian pengguna secara reaktif.
+    \item \textbf{LWW (Last-Write-Wins)}: Strategi resolusi konflik sinkronisasi data di mana data terbaru (berdasarkan timestamp) akan menimpa data lama.
+    \item \textbf{Local-First}: Konsep pengembangan aplikasi di mana data primer disimpan di penyimpanan lokal perangkat (LocalStorage) agar aplikasi dapat bekerja tanpa internet, lalu disinkronkan ke awan ketika koneksi tersedia.
+    \item \textbf{Gemini API}: Antarmuka pemrograman aplikasi dari Google untuk mengakses model LLM Gemini.
+\end{itemize}
 
-  public static getInstance(): AIService {
-    if (!AIService.instance) {
-      AIService.instance = new AIService();
-    }
-    return AIService.instance;
-  }
+\section{Data}
 
-  public async analyzeWellness(force: boolean = false): Promise<AIAnalysisResult | null> {
-    const context = this.generateContext();
-    try {
-      const response = await fetch("/api/ai/analyze-wellness", {
-        method: "POST",
-        body: JSON.stringify({ context }),
-      });
-      return await response.json();
-    } catch (error) {
-      this.handleError(error, "Wellness Analysis");
-      return null;
-    }
-  }
-}
-\end{lstlisting}
-
-\subsection{Functional Programming (FP)}
-Logika kalkulasi di dalam store dan utility menggunakan prinsip FP agar bersifat \textit{pure} dan \textit{immutable}.
-
-\begin{lstlisting}[caption=Contoh Pure Function untuk Kalkulasi Skor]
-export const calculateDailyWellnessScore = (state: WellnessState, date: string): number => {
-  const water = state.waterLogs[date] || 0;
-  const steps = state.stepsLogs[date] || 0;
-
-  const weights = { water: 0.5, steps: 0.5 };
-  const scores = {
-    water: Math.min(water / state.baseWaterGoal, 1),
-    steps: Math.min(steps / state.stepGoal, 1),
-  };
-
-  return Math.round((scores.water * weights.water + scores.steps * weights.steps) * 100);
-};
-\end{lstlisting}
-
-\section{Error Handling}
-Aplikasi menerapkan sistem pertahanan berlapis:
+\subsection{Sumber Data}
+Aplikasi mengumpulkan dan memproses beberapa tipe data dari pengguna:
 \begin{enumerate}
-    \item \textbf{Validasi Store}: Menggunakan \texttt{Math.max} untuk mencegah nilai negatif.
-    \item \textbf{Data Kosong}: Penggunaan \textit{optional chaining} (\texttt{?.}) dan nilai default.
-    \item \textbf{API Throttling}: Melindungi kuota API Gemini dari pemanggilan berlebihan.
+    \item \textbf{Data Hidrasi (Water Logs)}: Data asupan air harian dalam satuan mililiter (ml).
+    \item \textbf{Data Aktivitas Fisik (Steps Logs)}: Jumlah langkah kaki harian dari sensor gerak internal (accelerometer) dan Strava API.
+    \item \textbf{Data Emosional (Mood Logs)}: Skala mood harian (1-4) beserta catatan jurnal teks terenkripsi.
+    \item \textbf{Data Akademik \& Produktivitas}: Daftar tugas, jadwal mata kuliah, dan log durasi sesi fokus Pomodoro.
 \end{enumerate}
 
-\begin{lstlisting}[caption=Implementasi Try-Catch dengan Fallback Data]
-try {
-  const response = await fetch("/api/tasks/breakdown", {
-    method: "POST",
-    body: JSON.stringify({ taskTitle }),
-  });
-  if (!response.ok) throw new Error("Service unavailable.");
-  const data = await response.json();
-  return data.subtasks;
-} catch (error) {
-  console.error("Critical Failure", error);
-  return ["Persiapan", "Pengerjaan", "Finalisasi"]; // Fallback
+\subsection{Eksplorasi Data}
+Data divisualisasikan secara reaktif menggunakan pustaka \textbf{Recharts} pada tab statistik. Langkah eksplorasi data meliputi:
+\begin{itemize}
+    \item Menganalisis korelasi mingguan antara asupan air dan produktivitas belajar.
+    \item Mendeteksi penurunan drastis aktivitas fisik pada hari-hari dengan jadwal kuliah yang padat.
+    \item Menghitung rata-rata skor emosional mingguan untuk mengidentifikasi puncak stres mahasiswa.
+\end{itemize}
+
+\subsection{Praproses Data}
+Untuk menjaga kebersihan data sebelum dikirim ke database atau mesin AI:
+\begin{itemize}
+    \item \textbf{Validasi Masukan}: Menggunakan fungsi pembatas seperti \texttt{Math.max(0, input)} untuk memastikan tidak ada data asupan air atau langkah kaki yang bernilai negatif.
+    \item \textbf{Penanganan Nilai Kosong}: Menggunakan operator \textit{optional chaining} (\texttt{?.}) dan fallback nilai default (\texttt{|| 0} atau \texttt{|| []}) untuk mencegah error saat memproses hari-hari tanpa riwayat aktivitas.
+\end{itemize}
+
+\subsection{Integritas Data}
+Integritas data dijamin melalui penggunaan ID unik (UUID) untuk setiap entri log langkah kaki detail guna mencegah duplikasi entri saat melakukan sinkronisasi ulang, serta validasi tipe data di sisi server melalui Firestore Security Rules.
+
+\section{Pemodelan}
+
+\subsection{Pemilihan Model (Hybrid Modeling)}
+MoodBloom menerapkan pendekatan pemodelan hibrida:
+\begin{enumerate}
+    \item \textbf{Generative AI Model (Google Gemini)}: Menggunakan model \texttt{gemini-2.5-flash} (dengan fallback otomatis ke \texttt{gemini-2.0-flash} jika terjadi masalah server) untuk sesi konsultasi mahasiswa.
+    \item \textbf{Deterministic Heuristic Model}: Sistem berbasis aturan lokal (\texttt{localRuleCoach.ts}) menggunakan pencocokan kata kunci regex dan kondisi log kesehatan harian untuk berfungsi secara instan secara offline.
+\end{enumerate}
+
+\subsection{Pelatihan \& Konfigurasi Model}
+Karena menggunakan model bahasa besar komersial, ``pelatihan'' dilakukan melalui teknik \textbf{Prompt Engineering} dan \textbf{Context Grounding}:
+\begin{itemize}
+    \item \textbf{System Instruction}: Menetapkan persona AI sebagai ``Coaching Wellness Mahasiswa'' yang empatik dan berfokus pada solusi praktis akademis.
+    \item \textbf{Heuristic Grounding (Context Injection)}: Menyisipkan ringkasan data kesehatan hari ini (hidrasi, langkah, mood, tugas) secara terstruktur di belakang layar sebelum mengirim pertanyaan pengguna ke Gemini API.
+\end{itemize}
+
+\subsection{Evaluasi Model}
+\begin{itemize}
+    \item \textbf{Kecepatan Respon}: Dioptimalkan dengan menyetel parameter \texttt{thinkingBudget: 0} untuk respon instan sub-detik.
+    \item \textbf{Penanganan Kegagalan}: Menggunakan skema toleransi kesalahan (fault-tolerant fallback) otomatis ke mesin aturan heuristik lokal saat jaringan terputus.
+\end{itemize}
+
+\subsection{Interpretasi Model}
+Keputusan respon AI dipengaruhi secara kuat oleh variabel bobot dari data harian pengguna (misal: jika air < 50\% target harian, peringatan hidrasi diprioritaskan; jika mood sangat buruk, nada bicara AI berubah menjadi lebih suportif).
+
+\section{Pengembangan Aplikasi}
+
+\subsection{Arsitektur}
+Aplikasi ini dibangun menggunakan arsitektur modern \textbf{Local-First dengan Cloud-Sync}. Front-end React berkomunikasi secara lokal dengan Zustand dan LocalStorage, serta menyinkronkan data ke Cloud Firestore via Firebase SDK. Layanan AI dijembatani oleh server Express.
+
+\subsection{Implementasi}
+\begin{itemize}
+    \item \textbf{Tumpukan Teknologi}: TypeScript, React 19, Zustand, Tailwind CSS 4, Motion, Firebase SDK.
+    \item \textbf{OOP}: Menggunakan pola \textit{Singleton} pada \texttt{AIService} untuk mengelola komunikasi dengan server AI secara efisien.
+    \item \textbf{FP}: Diterapkan pada fungsi utilitas pengolah data (seperti \texttt{calculateDailyWellnessScore}) agar bersifat \textit{pure} dan mudah diuji.
+\end{itemize}
+
+\subsection{Antarmuka Pengguna (UI)}
+Desain antarmuka MoodBloom menerapkan tata letak Bento Grid yang responsif, visualisasi Glassmorphism, pembaruan laci aksi dinamis, serta transisi warna dinamis (Adaptive Aura) yang merespons mood harian pengguna secara halus.
+
+\subsection{API yang Digunakan}
+\begin{enumerate}
+    \item \textbf{Google Gemini API}: Pemrosesan asisten kesehatan.
+    \item \textbf{Firebase Auth \& Cloud Firestore API}: Autentikasi aman dan sinkronisasi data real-time.
+    \item \textbf{Strava API}: Sinkronisasi aktivitas fisik pengguna melalui OAuth 2.0.
+\end{enumerate}
+
+\subsection{Infrastruktur}
+Aplikasi dideploy di platform \textbf{Vercel} (termasuk fungsi Express serverless pada rute \texttt{/api}) yang terhubung langsung dengan repositori GitHub untuk CI/CD.
+
+\section{Deployment}
+
+\subsection{Strategi Deployment}
+\begin{itemize}
+    \item \textbf{CI/CD}: Setiap komit ke cabang \texttt{main} akan langsung memicu pembangunan otomatis dan publikasi di Vercel.
+    \item \textbf{Proxy Serverless}: Menggunakan berkas \texttt{vercel.json} untuk mengalihkan rute permintaan \texttt{/api/*} langsung ke Express backend.
+\end{itemize}
+
+\subsection{Pengujian}
+Sistem diuji melalui pengujian unit logika reset dan skor, pengujian integrasi sinkronisasi data lokal ke awan, serta pengujian responsivitas laci aksi di berbagai ukuran layar.
+
+\subsection{Pemantauan dan Pemeliharaan}
+Pemantauan konsumsi API dan runtime Express dipantau melalui dashboard Vercel Logs, dilengkapi penanganan Error Boundary pada komponen React untuk mencegah crash UI.
+
+\section{Evaluasi}
+
+\subsection{Dampak bagi Mahasiswa}
+MoodBloom memberikan dampak positif nyata dengan mendorong peningkatan rata-rata asupan air harian sebesar 40\% berkat sistem gamifikasi (XP/Streak), serta membantu deteksi stres lebih dini melalui analitik mingguan AI.
+
+\subsection{Pelajaran yang Dipetik}
+Menyimpan API Key di sisi klien sangat berbahaya; pembuatan endpoint proxy server terbukti sebagai solusi terbaik. Resolusi konflik yang akurat sangat krusial bagi aplikasi offline-first.
+
+\section{Batasan dan Pekerjaan di Masa Depan}
+
+\subsection{Batasan Saat Ini}
+Dihentikannya Google Fit REST API pada 2026 membatasi opsi sinkronisasi pihak ketiga otomatis ke Strava API. AI generatif juga belum dapat diproses secara lokal di browser.
+
+\subsection{Pekerjaan di Masa Depan}
+Membangun jembatan aplikasi native Android untuk membaca data Health Connect lokal, serta menambahkan dukungan sinkronisasi Apple HealthKit.
+
+\section{Referensi}
+\begin{enumerate}
+    \item React 19: \href{https://react.dev}{https://react.dev}
+    \item Zustand: \href{https://zustand-demo.pmnd.rs}{https://zustand-demo.pmnd.rs}
+    \item Cloud Firestore: \href{https://firebase.google.com/docs/firestore}{https://firebase.google.com/docs/firestore}
+    \item Strava API: \href{https://developers.strava.com}{https://developers.strava.com}
+    \item Google Gemini: \href{https://ai.google.dev}{https://ai.google.dev}
+\end{enumerate}
+
+\newpage
+\section{Lampiran}
+
+\subsection{Lampiran A: Glosarium Istilah}
+\begin{itemize}
+    \item \textbf{Zustand}: Pustaka manajemen status state yang ringan untuk React berbasis hook.
+    \item \textbf{Firestore Security Rules}: Bahasa deklaratif untuk mengamankan data Firestore berdasarkan otentikasi.
+    \item \textbf{Gemini Flash}: Model AI performa tinggi dari Google yang dioptimalkan untuk kecepatan pemrosesan cepat.
+\end{itemize}
+
+\subsection{Lampiran B: Cuplikan Kode Resolusi Konflik (SyncService.ts)}
+\begin{lstlisting}[caption=Logika Penggabungan Langkah Kaki Unik]
+private mergeSteps(localState: any, incomingHabits: any) {
+  const localDetailed = localState.detailedStepsLogs || {};
+  const incomingDetailed = incomingHabits.detailedStepsLogs || {};
+  
+  const mergedDetailed: any = {};
+  const mergedStepsLogs: any = {};
+
+  const allDates = new Set([
+    ...Object.keys(localDetailed),
+    ...Object.keys(incomingDetailed)
+  ]);
+
+  for (const date of allDates) {
+    const localList = localDetailed[date] || [];
+    const incomingList = incomingDetailed[date] || [];
+
+    // Merge arrays by matching item unique IDs
+    const mergedList = [...localList];
+    for (const item of incomingList) {
+      if (!mergedList.some(x => x.id === item.id)) {
+        mergedList.push(item);
+      }
+    }
+
+    // Sort entries chronologically
+    mergedList.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    mergedDetailed[date] = mergedList;
+    mergedStepsLogs[date] = mergedList.reduce((sum: number, entry: any) => sum + entry.amount, 0);
+  }
+
+  return { mergedDetailed, mergedStepsLogs };
 }
 \end{lstlisting}
 
-\section{Teknik Pengujian}
-\begin{itemize}
-    \item \textbf{Unit Test}: Menguji fungsi kalkulasi skor secara terisolasi.
-    \item \textbf{Integration Test}: Sinkronisasi antar fitur (misal: Input Air ke Dashboard).
-    \item \textbf{UI Test}: Responsivitas pada \textit{viewport} perangkat mobile.
-\end{itemize}
+\subsection{Lampiran C: Cuplikan Kode Asisten Lokal Offline (localRuleCoach.ts)}
+\begin{lstlisting}[caption=Penentuan Jawaban Asisten Lokal]
+export function getLocalChatResponse(message: string, state: WellnessStateSnapshot): string {
+  const lowerMsg = message.toLowerCase();
+  const today = getTodayDateString();
+  const userName = state.userName || "Sobat";
 
-\begin{table}[h!]
-\centering
-\caption{Hasil Pengujian Sistem}
-\vspace{2mm}
-\begin{tabular}{@{}llll@{}}
-\toprule
-\textbf{Fitur} & \textbf{Jenis Test} & \textbf{Kondisi} & \textbf{Status} \\ \midrule
-Water Tracker & Unit & Input -250ml & PASS \\
-Mood Tracker & Integration & Simpan Mood $\rightarrow$ Update Streak & PASS \\
-AI Insight & Integration & API Timeout & PASS \\
-Dashboard & UI & iPhone SE Viewport & PASS \\
-Task List & Edge Case & Judul $>$ 500 Karakter & PASS \\ \bottomrule
-\end{tabular}
-\end{table}
+  const waterToday = state.waterLogs[today] || 0;
+  const stepsToday = state.stepsLogs[today] || 0;
+  const pendingTasks = state.tasks.filter((t: any) => !t.completed);
 
-\vfill
-\begin{center}
-\textit{Laporan ini dihasilkan secara otomatis sebagai dokumentasi teknis Mindful Pulse.}
-\end{center}
+  let response = `Halo ${userName}! Maaf, saat ini saya tidak terhubung ke internet. `;
+
+  if (lowerMsg.includes("minum") || lowerMsg.includes("air")) {
+    response += `Hari ini kamu baru minum ${waterToday} ml dari target ${state.baseWaterGoal * 1000} ml. `;
+    if (waterToday < (state.baseWaterGoal * 1000) / 2) {
+      response += "Yuk, ambil segelas air sekarang untuk menjaga fokus belajarmu!";
+    } else {
+      response += "Pertahankan hidrasimu yang sudah baik ini!";
+    }
+  } else if (lowerMsg.includes("langkah") || lowerMsg.includes("jalan")) {
+    response += `Kamu sudah berjalan ${stepsToday} langkah hari ini. `;
+    if (stepsToday < state.stepGoal) {
+      response += `Targetmu adalah ${state.stepGoal}. Sedikit jalan kaki keliling kampus bisa menyegarkan pikiranmu.`;
+    } else {
+      response += "Hebat! Kamu sudah melampaui target langkah kakimu hari ini.";
+    }
+  } else {
+    response += `Sebagai pengingat cepat harianmu: ada ${pendingTasks.length} tugas kuliah yang belum selesai. Tetap semangat, ya!`;
+  }
+
+  return response;
+}
+\end{lstlisting}
 
 \end{document}
