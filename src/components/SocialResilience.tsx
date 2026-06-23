@@ -27,7 +27,9 @@ export const SocialResilience = () => {
         activeToday: increment(1)
       }).catch(() => {
         // If doc doesn't exist, create it
-        setDoc(statsRef, { activeToday: 1 }, { merge: true });
+        setDoc(statsRef, { activeToday: 1 }, { merge: true }).catch((err) => {
+          console.warn("[SocialResilience] Failed to initialize system stats:", err);
+        });
       });
       localStorage.setItem("last_session_pulse", today);
     }

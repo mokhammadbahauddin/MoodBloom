@@ -141,6 +141,87 @@ export function useStatsData(isActive = true) {
     return calculateAverages(correlationData);
   }, [isActive, correlationData]);
 
+  function getCorrelationDesc(r: number): string {
+    if (isNaN(r) || r === 0) return "Tidak cukup data";
+    const absR = Math.abs(r);
+    let strength = "";
+    if (absR >= 0.7) strength = "Sangat Kuat";
+    else if (absR >= 0.4) strength = "Sedang / Signifikan";
+    else if (absR >= 0.1) strength = "Lemah";
+    else strength = "Sangat Lemah";
+    
+    return `${strength} (${r >= 0 ? "Positif" : "Negatif"})`;
+  }
+
+  const { correlationResults, kmeansResult } = useMemo(() => {
+    if (!isActive) {
+      return {
+        correlationResults: [],
+        kmeansResult: { centroids: [], points: [], clusterDescriptions: [] } as KMeansResult
+      };
+    }
+    
+    const allDates = Array.from(new Set([
+      ...Object.keys(moodLogs),
+      ...Object.keys(waterLogs),
+      ...Object.keys(stepsLogs),
+      ...Object.keys(meditationLogs),
+      ...(focusLogs || []).map(f => f.date)
+    ])).sort();
+    
+    const sleepArray: number[] = [];
+    const waterArray: number[] = [];
+    const stepsArray: number[] = [];
+    const meditationArray: number[] = [];
+    const focusArray: number[] = [];
+    const moodArray: number[] = [];
+    
+    const points: KMeanPoint[] = [];
+    
+    allDates.forEach((dateStr) => {
+      const w = waterLogs[dateStr] || 0;
+      const m = moodLogs[dateStr];
+      const s = stepsLogs[dateStr] || 0;
+      const med = (meditationLogs[dateStr] || 0) as number;
+      const focus = (focusLogs || []).filter(f => f.date === dateStr).reduce((sum, f) => sum + f.minutes, 0);
+      
+      const sleepHours = m ? mapSleepToHours(m.sleepValue) : 0;
+      const moodScore = m ? mapMoodToScore(m.moodValue) : 0;
+      
+      if (m) {
+        sleepArray.push(sleepHours);
+        waterArray.push(w);
+        stepsArray.push(s);
+        meditationArray.push(med);
+        focusArray.push(focus);
+        moodArray.push(moodScore);
+      }
+      
+      points.push({
+        date: dateStr,
+        features: [sleepHours || 6, w || 1.5, s || 3000, med || 10, focus || 30, moodScore || 60]
+      });
+    });
+    
+    const rSleep = calculatePearsonCorrelation(sleepArray, moodArray);
+    const rWater = calculatePearsonCorrelation(waterArray, moodArray);
+    const rSteps = calculatePearsonCorrelation(stepsArray, moodArray);
+    const rMeditation = calculatePearsonCorrelation(meditationArray, moodArray);
+    const rFocus = calculatePearsonCorrelation(focusArray, moodArray);
+    
+    const correlationResults = [
+      { name: "Durasi Tidur", r: rSleep, desc: getCorrelationDesc(rSleep) },
+      { name: "Asupan Air", r: rWater, desc: getCorrelationDesc(rWater) },
+      { name: "Langkah Kaki", r: rSteps, desc: getCorrelationDesc(rSteps) },
+      { name: "Meditasi (menit)", r: rMeditation, desc: getCorrelationDesc(rMeditation) },
+      { name: "Waktu Fokus (menit)", r: rFocus, desc: getCorrelationDesc(rFocus) },
+    ];
+    
+    const kmeansResult = runKMeansClustering(points, Math.min(3, points.length));
+    
+    return { correlationResults, kmeansResult };
+  }, [isActive, moodLogs, waterLogs, stepsLogs, meditationLogs, focusLogs]);
+
   const stats = useMemo(() => {
     if (!isActive) return [];
     const { avgWater, prevAvgWater, avgSleep, prevAvgSleep, avgMood, prevAvgMood } = averages;
@@ -148,20 +229,59 @@ export function useStatsData(isActive = true) {
     const sleepDelta = (avgSleep - prevAvgSleep).toFixed(1);
     const moodDelta = Math.round(avgMood - prevAvgMood);
 
-    const healthBattery = getHealthBatteryInsight(stateForHeuristic);
+    // K-Means powered Body Battery calculations
+    let batteryValue = "75%";
+    let batteryStatus = "Seimbang";
+    let batteryInterpretation = "Kondisi tubuh cukup stabil.";
+    let batteryColor = "text-indigo-500";
+    let statusBgColor = "bg-indigo-500/10";
+
+    if (kmeansResult && kmeansResult.points && kmeansResult.points.length > 0) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayAssignment = kmeansResult.points.find((p: any) => p.point.date === todayStr);
+      const todayClusterIdx = todayAssignment ? todayAssignment.clusterIndex : 0;
+      const todayClusterLabel = kmeansResult.clusterDescriptions[todayClusterIdx] || "";
+
+      if (todayClusterLabel.includes("Oasis")) {
+        batteryValue = "95%";
+        batteryStatus = "Prima";
+        batteryInterpretation = "Fisik & Mental di kondisi puncak.";
+        batteryColor = "text-emerald-500";
+        statusBgColor = "bg-emerald-500/10";
+      } else if (todayClusterLabel.includes("Kritis")) {
+        batteryValue = "45%";
+        batteryStatus = "Lelah";
+        batteryInterpretation = "Risiko stres tinggi. Butuh self-care.";
+        batteryColor = "text-rose-500";
+        statusBgColor = "bg-rose-500/10";
+      } else {
+        batteryValue = "75%";
+        batteryStatus = "Cukup";
+        batteryInterpretation = "Kondisi fisik stabil dan berimbang.";
+        batteryColor = "text-indigo-500";
+        statusBgColor = "bg-indigo-500/10";
+      }
+    } else {
+      const hb = getHealthBatteryInsight(stateForHeuristic);
+      batteryValue = hb.value;
+      batteryStatus = hb.status;
+      batteryInterpretation = hb.status === "Optimal" ? "Prima (Optimal)" : hb.status === "Perlu Pemulihan" ? "Lelah (Butuh Rehat)" : "Cukup (Normal)";
+      batteryColor = hb.color === "text-emerald-500" ? "text-emerald-500" : hb.color === "text-rose-500" ? "text-rose-500" : "text-indigo-500";
+      statusBgColor = hb.color === "text-emerald-500" ? "bg-emerald-500/10" : hb.color === "text-rose-500" ? "bg-rose-500/10" : "bg-indigo-500/10";
+    }
 
     return [
       {
         label: "Baterai Tubuh",
-        value: healthBattery.value,
-        interpretation: `Status: ${healthBattery.status}`,
+        value: batteryValue,
+        interpretation: batteryInterpretation,
         img: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Battery.png",
-        color: "bg-emerald-500/10",
+        color: statusBgColor,
         desc: "Kesehatan Fisik & Mental",
         delta: streakData.totalActive > 0 ? "Live" : "No Data",
         deltaType: "up",
-        status: healthBattery.status,
-        statusColor: healthBattery.color,
+        status: batteryStatus,
+        statusColor: batteryColor,
       },
       {
         label: "Konsumsi Air",
@@ -200,7 +320,7 @@ export function useStatsData(isActive = true) {
         statusColor: avgMood >= 75 ? "text-amber-500" : "text-rose-500",
       },
     ];
-  }, [isActive, averages, baseWaterGoal, stateForHeuristic, streakData.totalActive]);
+  }, [isActive, averages, baseWaterGoal, stateForHeuristic, streakData.totalActive, kmeansResult]);
 
   const storySummary = useMemo(() => {
     if (!isActive) return "";
@@ -227,74 +347,29 @@ export function useStatsData(isActive = true) {
     return generatePredictiveInsight(stateForHeuristic);
   }, [isActive, stateForHeuristic]);
 
-  function getCorrelationDesc(r: number): string {
-    if (isNaN(r) || r === 0) return "Tidak cukup data";
-    const absR = Math.abs(r);
-    let strength = "";
-    if (absR >= 0.7) strength = "Sangat Kuat";
-    else if (absR >= 0.4) strength = "Sedang / Signifikan";
-    else if (absR >= 0.1) strength = "Lemah";
-    else strength = "Sangat Lemah";
-    
-    return `${strength} (${r >= 0 ? "Positif" : "Negatif"})`;
-  }
-
-  const { correlationResults, kmeansResult } = useMemo(() => {
+  const lifeBalanceData = useMemo(() => {
     if (!isActive) {
-      return {
-        correlationResults: [],
-        kmeansResult: { centroids: [], points: [], clusterDescriptions: [] } as KMeansResult
-      };
+      return [
+        { label: "Kejernihan Mental", value: 50, color: "bg-amber-500", text: "text-amber-500" },
+        { label: "Kekuatan Fisik", value: 50, color: "bg-emerald-500", text: "text-emerald-500" },
+        { label: "Harmoni Sosial", value: 50, color: "bg-blue-500", text: "text-blue-500" },
+      ];
     }
+    const { avgMood, avgWater } = averages;
+    const stepsAvg = correlationData.reduce((sum, d) => sum + d.steps, 0) / (correlationData.length || 1);
     
-    const allDates = Array.from(new Set([
-      ...Object.keys(moodLogs),
-      ...Object.keys(waterLogs),
-      ...Object.keys(stepsLogs)
-    ])).sort();
+    const mentalClarity = Math.min(100, Math.max(0, Math.round(avgMood || 70)));
+    const physicalStrength = Math.min(100, Math.max(0, Math.round(((avgWater / baseWaterGoal) * 50) + ((stepsAvg / stepGoal) * 50))));
     
-    const sleepArray: number[] = [];
-    const waterArray: number[] = [];
-    const stepsArray: number[] = [];
-    const moodArray: number[] = [];
-    
-    const points: KMeanPoint[] = [];
-    
-    allDates.forEach((dateStr) => {
-      const w = waterLogs[dateStr] || 0;
-      const m = moodLogs[dateStr];
-      const s = stepsLogs[dateStr] || 0;
-      
-      const sleepHours = m ? mapSleepToHours(m.sleepValue) : 0;
-      const moodScore = m ? mapMoodToScore(m.moodValue) : 0;
-      
-      if (m) {
-        sleepArray.push(sleepHours);
-        waterArray.push(w);
-        stepsArray.push(s);
-        moodArray.push(moodScore);
-      }
-      
-      points.push({
-        date: dateStr,
-        features: [sleepHours || 6, w || 1.5, s || 3000, moodScore || 60]
-      });
-    });
-    
-    const rSleep = calculatePearsonCorrelation(sleepArray, moodArray);
-    const rWater = calculatePearsonCorrelation(waterArray, moodArray);
-    const rSteps = calculatePearsonCorrelation(stepsArray, moodArray);
-    
-    const correlationResults = [
-      { name: "Durasi Tidur", r: rSleep, desc: getCorrelationDesc(rSleep) },
-      { name: "Asupan Air", r: rWater, desc: getCorrelationDesc(rWater) },
-      { name: "Langkah Kaki", r: rSteps, desc: getCorrelationDesc(rSteps) },
+    const noteCount = correlationData.filter(d => d.notes && d.notes.trim().length > 3).length;
+    const socialHarmony = Math.min(100, Math.max(30, Math.round(40 + (noteCount * 10))));
+
+    return [
+      { label: "Kejernihan Mental", value: mentalClarity, color: "bg-amber-500", text: "text-amber-500" },
+      { label: "Kekuatan Fisik", value: physicalStrength, color: "bg-emerald-500", text: "text-emerald-500" },
+      { label: "Harmoni Sosial", value: socialHarmony, color: "bg-blue-500", text: "text-blue-500" },
     ];
-    
-    const kmeansResult = runKMeansClustering(points, Math.min(3, points.length));
-    
-    return { correlationResults, kmeansResult };
-  }, [isActive, moodLogs, waterLogs, stepsLogs]);
+  }, [isActive, averages, correlationData, baseWaterGoal, stepGoal]);
 
   return {
     timeRange, setTimeRange,
@@ -306,6 +381,6 @@ export function useStatsData(isActive = true) {
     predictiveInsight,
     mapSleepToHours, mapEnergyToLevel, stateForHeuristic,
     baseWaterGoal, weeklyCoachingReport, aiAnalysis,
-    correlationResults, kmeansResult
+    correlationResults, kmeansResult, lifeBalanceData
   };
 }

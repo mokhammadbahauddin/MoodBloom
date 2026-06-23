@@ -808,205 +808,35 @@ export default function Mood({
             >
               <AIInsight 
                 message={insight || "Ritme harianmu menunjukkan korelasi kuat antara tidur optimal dan kejernihan pikiran di pagi hari."}
-                actionText="Analisis Heuristik"
+                actionText="Tanya AI Coach"
                 onAction={() => {
                   if (insight) setActiveChatContext(insight);
                   onOpenChat?.();
                 }}
               />
 
-              <Card className="border border-outline/20 p-6 md:p-8 rounded-2xl bg-white shadow-sm">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 border border-indigo-500/25">
-                      <BarChart3 size={20} />
-                    </div>
-                    <h3 className="font-headline font-bold text-lg text-on-surface tracking-tight">
-                      Aliran Energi
-                    </h3>
-                  </div>
-                  <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-600 border-indigo-500/10 hover:bg-indigo-500/20 text-[10px] font-bold uppercase tracking-widest rounded-full">
-                     7 Hari Terakhir
-                  </Badge>
+              <Card className="border border-outline/20 p-6 md:p-8 rounded-2xl bg-white shadow-sm flex flex-col items-center text-center space-y-6">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-3xl">
+                  📊
                 </div>
-                
-                <div className="h-[220px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart
-                      data={weeklyTrendData}
-                      margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="currentColor"
-                        opacity={0.08}
-                      />
-                      <XAxis
-                        dataKey="day"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 10, fill: "rgba(0,0,0,0.4)" }}
-                        dy={10}
-                      />
-                      <YAxis hide domain={[0, 4]} />
-                      <Tooltip
-                        content={<CustomTooltip />}
-                        cursor={{ fill: "rgba(0,0,0,0.03)", radius: 10 }}
-                      />
-                      <Bar dataKey="moodValue" radius={[6, 6, 0, 0]} barSize={20}>
-                        {weeklyTrendData.map((entry, index) => {
-                          const moodColor =
-                            moods.find((m) => m.value === entry.moodValue)
-                              ?.chartColor || "rgba(0,0,0,0.1)";
-                          return <Cell key={`cell-${index}`} fill={moodColor} />;
-                        })}
-                      </Bar>
-                      <Line
-                        type="monotone"
-                        dataKey="sleepValue"
-                        stroke="#6366f1"
-                        strokeWidth={3}
-                        dot={{
-                          r: 4,
-                          fill: "#ffffff",
-                          strokeWidth: 2,
-                          stroke: "#6366f1",
-                        }}
-                        activeDot={{ r: 6, strokeWidth: 3, stroke: "#fff" }}
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
+                <div className="space-y-2">
+                  <h3 className="font-headline font-bold text-xl text-on-surface tracking-tight">
+                    Analisis & Korelasi Data Anda
+                  </h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed max-w-sm">
+                    Seluruh analisis sains data mendalam (Baterai Tubuh, Keseimbangan Hidup, dan Rekomendasi Kebiasaan Pintar) telah disentralisasi di Dashboard Insight.
+                  </p>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-outline/5">
-                   <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-50">Rata-rata Mood</span>
-                      <p className="font-headline font-bold text-lg text-on-surface">Meningkat 12%</p>
-                   </div>
-                   <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-50">Kualitas Tidur</span>
-                      <p className="font-headline font-bold text-lg text-secondary">Stabil</p>
-                   </div>
-                </div>
+                {onNavigate && (
+                  <Button 
+                    onClick={() => onNavigate("stats")} 
+                    className="w-full py-3 text-sm font-bold bg-primary text-white hover:bg-primary-dim transition-all shadow-sm rounded-xl flex items-center justify-center gap-2"
+                  >
+                    Lihat Analisis Saya
+                  </Button>
+                )}
               </Card>
-
-              {/* Correlation Widget - Simplified for sidebar */}
-              <Card className="border border-outline/20 p-6 md:p-8 rounded-2xl bg-white shadow-sm relative overflow-hidden">
-                 <div className="relative z-10">
-                    <h3 className="font-headline font-bold text-lg tracking-tight mb-4 flex items-center justify-between">
-                       <div className="flex items-center gap-2">
-                          Korelasi Rahasia
-                          <Sparkles size={16} className="text-amber-500" />
-                       </div>
-                       {loadingAnalysis && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />}
-                    </h3>
-                    
-                    {wellnessCorrelation ? (
-                      <div className="space-y-6">
-                        <p className="text-sm font-semibold leading-tight text-on-surface">
-                          {wellnessCorrelation.correlation}
-                        </p>
-
-                        {/* Improved Mini Area Chart */}
-                        {wellnessCorrelation.chartPoints && (
-                          <div className="h-28 w-full bg-primary/5 rounded-2xl p-3 relative overflow-hidden group/chart border border-primary/10">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <ComposedChart data={wellnessCorrelation.chartPoints} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                <defs>
-                                  <linearGradient id="colorCorr" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
-                                  </linearGradient>
-                                </defs>
-                                <XAxis dataKey="x" hide />
-                                <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                                <Area 
-                                  type="monotone" 
-                                  dataKey="y" 
-                                  stroke="var(--color-primary)" 
-                                  strokeWidth={2.5}
-                                  fillOpacity={1} 
-                                  fill="url(#colorCorr)" 
-                                />
-                                <Line 
-                                  type="monotone" 
-                                  dataKey="y" 
-                                  stroke="var(--color-primary)" 
-                                  strokeWidth={0}
-                                  dot={{ r: 3.5, fill: "var(--color-primary)", strokeWidth: 1.5, stroke: "#fff" }} 
-                                />
-                              </ComposedChart>
-                            </ResponsiveContainer>
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                           <p className="text-xs font-medium text-on-surface-variant leading-relaxed opacity-80">
-                             {renderFormattedText(wellnessCorrelation.insight)}
-                           </p>
-                        </div>
-
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-                              <Zap size={14} fill="currentColor" />
-                           </div>
-                           <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Dampak: +{wellnessCorrelation.impactScore}%</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative py-2 space-y-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                               <Brain size={16} className="text-primary animate-pulse" />
-                             </div>
-                             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">AI Discovery Mode</p>
-                          </div>
-                          
-                          <p className="text-sm font-semibold text-on-surface leading-snug">
-                            {loadingAnalysis ? "Menganalisis bio-ritme..." : "Menunggu Data Refleksi..."}
-                          </p>
-                          
-                          <p className="text-xs text-on-surface-variant font-medium opacity-60 leading-relaxed">
-                            Mulai mencatat jurnal untuk membuka korelasi tersembunyi antara fokus dan perasaanmu.
-                          </p>
-
-                          {/* Skeleton Preview */}
-                          <div className="h-16 w-full bg-on-surface/[0.02] rounded-2xl border border-dashed border-outline/30 flex items-center justify-center overflow-hidden relative">
-                             <div className="flex gap-2 opacity-10">
-                                {[1, 2, 3, 4, 5].map(i => (
-                                  <div key={i} className="w-2 bg-on-surface rounded-full" style={{ height: `${Math.random()*40 + 20}px` }} />
-                                ))}
-                             </div>
-                             {/* Scanning Line */}
-                             <motion.div 
-                                animate={{ top: ['0%', '100%', '0%'] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                                className="absolute left-0 right-0 h-0.5 bg-primary/30 blur-[1px] z-10"
-                             />
-                          </div>
-
-                          {/* Progress Tracker */}
-                          <div className="pt-2">
-                            <div className="flex justify-between items-center mb-1.5">
-                               <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Misi Jurnal</span>
-                               <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{Object.keys(moodLogs).length}/2 Hari</span>
-                            </div>
-                            <div className="h-1 w-full bg-on-surface/5 rounded-full overflow-hidden">
-                               <motion.div 
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${Math.min(100, (Object.keys(moodLogs).length / 2) * 100)}%` }}
-                                  className="h-full bg-primary"
-                               />
-                            </div>
-                          </div>
-                        </div>
-                        </div>
-                      )}
-                   </div>
-                </Card>
-              </motion.div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

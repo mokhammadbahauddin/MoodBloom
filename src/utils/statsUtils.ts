@@ -184,7 +184,7 @@ export function calculatePearsonCorrelation(x: number[], y: number[]): number {
 
 export interface KMeanPoint {
   date: string;
-  features: [number, number, number, number]; // [sleepHours, waterIntake, steps, moodScore]
+  features: number[];
 }
 
 export interface KMeansResult {
@@ -200,7 +200,7 @@ export function runKMeansClustering(data: KMeanPoint[], k = 3, maxIterations = 2
   }
 
   // 1. Min-Max normalization for features (so steps doesn't dominate other features)
-  const numFeatures = 4;
+  const numFeatures = data[0].features.length;
   const mins = Array(numFeatures).fill(Infinity);
   const maxs = Array(numFeatures).fill(-Infinity);
   
@@ -215,7 +215,7 @@ export function runKMeansClustering(data: KMeanPoint[], k = 3, maxIterations = 2
     const normFeatures = p.features.map((v, j) => {
       const range = maxs[j] - mins[j];
       return range === 0 ? 0.5 : (v - mins[j]) / range;
-    }) as [number, number, number, number];
+    });
     return { original: p, normFeatures };
   });
 
@@ -232,7 +232,7 @@ export function runKMeansClustering(data: KMeanPoint[], k = 3, maxIterations = 2
 
   // Handle case where n < k
   while (centroids.length < k) {
-    centroids.push([0.5, 0.5, 0.5, 0.5]);
+    centroids.push(Array(numFeatures).fill(0.5));
   }
 
   let assignments = Array(n).fill(-1);
@@ -298,14 +298,15 @@ export function runKMeansClustering(data: KMeanPoint[], k = 3, maxIterations = 2
   }));
 
   // Analyze clusters to assign descriptive labels based on denormalized centroids
-  // Centroid feature structure: [sleepHours, waterIntake, steps, moodScore]
+  // Centroid feature structure: [sleepHours, waterIntake, steps, meditation, focus, moodScore]
   const clusterScores = denormalizedCentroids.map((c, idx) => {
-    // Score based on average normalized components: sleep / 8, water / 2, steps / 5000, mood / 100
     const sleepNorm = c[0] / 8;
     const waterNorm = c[1] / 2;
     const stepNorm = c[2] / 5000;
-    const moodNorm = c[3] / 100;
-    const overallScore = (sleepNorm + waterNorm + stepNorm + moodNorm) / 4;
+    const medNorm = (c[3] || 0) / 20;
+    const focusNorm = (c[4] || 0) / 120;
+    const moodNorm = (c[5] || 0) / 100;
+    const overallScore = (sleepNorm + waterNorm + stepNorm + medNorm + focusNorm + moodNorm) / 6;
     return { index: idx, score: overallScore };
   });
 
