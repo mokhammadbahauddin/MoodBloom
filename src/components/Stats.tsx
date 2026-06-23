@@ -47,9 +47,11 @@ const RefLine = ReferenceLine as any;
 export default function Stats({
   onOpenChat,
   onNavigate,
+  isActive = true,
 }: {
   onOpenChat?: () => void;
   onNavigate?: (tab: any, subTab?: any) => void;
+  isActive?: boolean;
 }) {
   const {
     timeRange, setTimeRange, selectedDay, setSelectedDay,
@@ -58,15 +60,15 @@ export default function Stats({
     storySummary, dynamicRecommendations, radarData,
     predictiveInsight, mapSleepToHours, mapEnergyToLevel, baseWaterGoal,
     weeklyCoachingReport, aiAnalysis
-  } = useStatsData();
+  } = useStatsData(isActive);
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
-    if (!weeklyCoachingReport && !isGeneratingReport) {
+    if (isActive && !weeklyCoachingReport && !isGeneratingReport) {
       handleGenerateWeeklyReport();
     }
-  }, [weeklyCoachingReport]);
+  }, [isActive, weeklyCoachingReport]);
 
   const handleGenerateWeeklyReport = async () => {
     setIsGeneratingReport(true);
@@ -257,6 +259,10 @@ export default function Stats({
     }
     return null;
   };
+
+  if (!isActive) {
+    return <div className="min-h-[500px]" />;
+  }
 
   return (
     <ErrorBoundary fallback={

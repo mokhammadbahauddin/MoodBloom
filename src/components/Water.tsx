@@ -188,8 +188,10 @@ const SplashEffect = ({ trigger }: { trigger: number }) => {
 
 export default function Water({
   onOpenChat,
+  isActive = true,
 }: {
   onOpenChat?: () => void;
+  isActive?: boolean;
 }) {
   const [insight, setInsight] = useState<string | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
@@ -245,20 +247,24 @@ export default function Water({
   };
 
   useEffect(() => {
+    if (!isActive) return;
     setLastSync(new Date());
-  }, [currentWeather]);
-  useEffect(() => {
-    const aiInsight = generateHeuristicInsight(aiService.generateStateSnapshot(), "Water (Hidrasi)");
-    setInsight(aiInsight.message);
-  }, [temperature, goal, consumed, percentage]); // Keep deps to trigger re-eval but avoid infinite loops
+  }, [isActive, currentWeather]);
 
   useEffect(() => {
+    if (!isActive) return;
+    const aiInsight = generateHeuristicInsight(aiService.generateStateSnapshot(), "Water (Hidrasi)");
+    setInsight(aiInsight.message);
+  }, [isActive, temperature, goal, consumed, percentage]); // Keep deps to trigger re-eval but avoid infinite loops
+
+  useEffect(() => {
+    if (!isActive) return;
     if (insight && isHot && !loadingInsight) {
       setShowNotification(true);
       const timer = setTimeout(() => setShowNotification(false), 8000);
       return () => clearTimeout(timer);
     }
-  }, [insight, isHot, loadingInsight]);
+  }, [isActive, insight, isHot, loadingInsight]);
 
   const getIcon = (type: WaterEntry["type"]) => {
     switch (type) {
@@ -272,6 +278,10 @@ export default function Water({
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   return (
     <div className="space-y-8 md:space-y-12 pt-2 md:pt-4 pb-12 relative">

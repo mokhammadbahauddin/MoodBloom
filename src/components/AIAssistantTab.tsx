@@ -24,7 +24,7 @@ import { getTodayDateString } from "../lib/dateUtils";
  * AIAssistantTab - Phase 3 Professional Overhaul
  * Immersive, full-screen conversation space with reactive depth and high-end visual feedback.
  */
-export default function AIAssistantTab() {
+export default function AIAssistantTab({ isActive = true }: { isActive?: boolean }) {
   const aiAnalysis = useUserStore(state => (state as any).aiAnalysis);
   const userName = useUserStore(state => state.userName);
   const [input, setInput] = useState("");
@@ -45,13 +45,15 @@ export default function AIAssistantTab() {
   };
 
   useEffect(() => {
+    if (!isActive) return;
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [isActive, messages, isTyping]);
 
   const activeChatContext = useUserStore(state => state.activeChatContext);
   const setActiveChatContext = useUserStore(state => state.setActiveChatContext);
 
   useEffect(() => {
+    if (!isActive) return;
     if (activeChatContext) {
       const insightMsg = `Saya ingin membahas insight ini: "${activeChatContext}"`;
       
@@ -78,7 +80,7 @@ export default function AIAssistantTab() {
       sendContextToAI();
       setActiveChatContext(null); // Clear context after triggering
     }
-  }, [activeChatContext, aiAnalysis, setActiveChatContext]);
+  }, [isActive, activeChatContext, aiAnalysis, setActiveChatContext]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const targetText = textToSend || input;
@@ -151,6 +153,10 @@ export default function AIAssistantTab() {
     
     return replies.slice(0, 3);
   };
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] bg-transparent animate-in fade-in duration-500 overflow-hidden">

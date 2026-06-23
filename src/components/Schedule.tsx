@@ -42,8 +42,10 @@ const getColorClass = (str: string) => {
 
 export default function Schedule({
   onStartFocus,
+  isActive = true,
 }: {
   onStartFocus?: () => void;
+  isActive?: boolean;
 }) {
   const schedules = useProductivityStore(state => state.schedules);
   const setSchedules = useProductivityStore(state => state.setSchedules);
@@ -60,10 +62,11 @@ export default function Schedule({
 
   // On mount, choose list for mobile, grid for desktop
   useEffect(() => {
+    if (!isActive) return;
     if (window.innerWidth >= 1024) {
       setViewMode("grid");
     }
-  }, []);
+  }, [isActive]);
 
   // Time Axis Calculation
   const { min: minHour, max: maxHour, hours } = useMemo(() => {
@@ -106,6 +109,7 @@ export default function Schedule({
 
   // Current Time Position
   useEffect(() => {
+    if (!isActive) return;
     const updatePos = () => {
       const now = new Date();
       const h = now.getHours();
@@ -116,7 +120,7 @@ export default function Schedule({
     updatePos();
     const interval = setInterval(updatePos, 60000);
     return () => clearInterval(interval);
-  }, [minHour]);
+  }, [isActive, minHour]);
 
   // Handlers
   const handleAddClass = (e: React.FormEvent) => {
@@ -159,6 +163,10 @@ export default function Schedule({
   const completedToday = tasks.filter(t => t.completed).length;
   const totalTasks = tasks.length;
   const taskProgress = totalTasks > 0 ? (completedToday / totalTasks) * 100 : 0;
+
+  if (!isActive) {
+    return <div className="min-h-[500px]" />;
+  }
 
   return (
     <div className="space-y-6 pt-4 pb-32 md:pb-12">

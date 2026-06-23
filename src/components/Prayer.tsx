@@ -36,7 +36,7 @@ const DAILY_AYAHS = [
   { arabic: "ادْعُونِي أَسْتَجِبْ لَكُمْ", text: "Berdoalah kepada-Ku, niscaya akan Aku perkenankan bagimu.", ref: "Ghafir 40:60" },
 ];
 
-export default function Prayer() {
+export default function Prayer({ isActive = true }: { isActive?: boolean }) {
   const prayerAlarms = useHabitsStore(state => state.prayerAlarms);
   const togglePrayerAlarm = useHabitsStore(state => state.togglePrayerAlarm);
   const settings = useSettingsStore((state) => state.settings);
@@ -56,10 +56,11 @@ export default function Prayer() {
   const [dailyAyah, setDailyAyah] = useState(DAILY_AYAHS[0]);
 
   useEffect(() => {
+    if (!isActive) return;
     // Pick a pseudo-random Ayah based on the day of the year
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     setDailyAyah(DAILY_AYAHS[dayOfYear % DAILY_AYAHS.length]);
-  }, []);
+  }, [isActive]);
 
   const calculateQibla = (lat: number, lng: number) => {
     const lat1 = (lat * Math.PI) / 180;
@@ -182,8 +183,9 @@ export default function Prayer() {
   };
 
   useEffect(() => {
+    if (!isActive) return;
     loadLocationData();
-  }, [settings?.manualLocation]);
+  }, [isActive, settings?.manualLocation]);
 
   const handleManualSearch = async () => {
     if (!searchInput.trim()) {
@@ -272,12 +274,17 @@ export default function Prayer() {
   const isFacingQibla = qibla !== null && (Math.abs((heading - qibla + 360) % 360) < 5 || Math.abs((heading - qibla + 360) % 360) > 355);
 
   useEffect(() => {
+    if (!isActive) return;
     if (isFacingQibla && "vibrate" in navigator) {
       navigator.vibrate(50);
     }
-  }, [isFacingQibla]);
+  }, [isActive, isFacingQibla]);
 
   const isNonisMode = settings.religion === "other";
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   const toggleNonisMode = () => {
     updateSettings({ religion: isNonisMode ? "islam" : "other" });

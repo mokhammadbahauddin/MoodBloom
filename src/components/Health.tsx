@@ -12,11 +12,13 @@ export default function Health({
   activeTab = "water",
   onTabChange,
   onNavigate,
+  isActive = true,
 }: {
   onOpenChat?: () => void;
   activeTab?: "water" | "mood" | "prayer" | "steps" | "meditation";
   onTabChange?: (tab: "water" | "mood" | "prayer" | "steps" | "meditation") => void;
   onNavigate?: (tab: string, subTab?: string) => void;
+  isActive?: boolean;
 }) {
   const tabs = [
     { id: "water", label: "Air", icon: Droplet, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -47,7 +49,7 @@ export default function Health({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Water onOpenChat={onOpenChat} />
+              <Water isActive={isActive && activeTab === "water"} onOpenChat={onOpenChat} />
             </motion.div>
           )}
         </div>
@@ -60,7 +62,7 @@ export default function Health({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Mood onOpenChat={onOpenChat} onNavigate={onNavigate} />
+              <Mood isActive={isActive && activeTab === "mood"} onOpenChat={onOpenChat} onNavigate={onNavigate} />
             </motion.div>
           )}
         </div>
@@ -73,7 +75,7 @@ export default function Health({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Prayer />
+              <Prayer isActive={isActive && activeTab === "prayer"} />
             </motion.div>
           )}
         </div>
@@ -86,7 +88,7 @@ export default function Health({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Steps />
+              <Steps isActive={isActive && activeTab === "steps"} />
             </motion.div>
           )}
         </div>
@@ -99,7 +101,7 @@ export default function Health({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Meditation />
+              <Meditation isActive={isActive && activeTab === "meditation"} />
             </motion.div>
           )}
         </div>

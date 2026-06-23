@@ -106,9 +106,11 @@ const StreakTracker = ({ moodLogs, streakCount }: { moodLogs: any; streakCount: 
 export default function Home({
   onNavigate,
   onOpenChat,
+  isActive = true,
 }: {
   onNavigate?: (tab: string, subTab?: string) => void;
   onOpenChat?: () => void;
+  isActive?: boolean;
 }) {
   const [greeting, setGreeting] = useState<string>("Halo");
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -146,6 +148,7 @@ export default function Home({
   const [prayerTimes, setPrayerTimes] = useState<{ name: string; time: string }[]>([]);
 
   useEffect(() => {
+    if (!isActive) return;
     const fetchTimes = async () => {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -163,12 +166,14 @@ export default function Home({
                 { name: "Isya", time: t.Isha },
               ]);
             }
-          } catch (e) {}
+          } catch (e) {
+            console.error(e);
+          }
         });
       }
     };
     fetchTimes();
-  }, []);
+  }, [isActive]);
 
   const moodDetails = getMoodDetails(todayMood?.moodValue);
   const moodLabel = moodDetails.label;
@@ -183,14 +188,17 @@ export default function Home({
   const todaysClasses = getTodaysClasses(schedules as any[], currentDayStr);
 
   useEffect(() => {
+    if (!isActive) return;
     const hour = new Date().getHours();
     setGreeting(getGreetingMessage(hour));
-  }, []);
+  }, [isActive]);
 
   useEffect(() => {
+    if (!isActive) return;
     const aiInsight = generateHeuristicInsight(aiService.generateStateSnapshot(), "Beranda Utama");
     setInsight(aiInsight.message);
   }, [
+    isActive,
     userName,
     schedules,
     tasks,
@@ -215,6 +223,10 @@ export default function Home({
   const formattedDate = new Intl.DateTimeFormat("id-ID", dateOptions).format(
     new Date(),
   );
+
+  if (!isActive) {
+    return <div className="min-h-[500px]" />;
+  }
 
   return (
     <motion.div

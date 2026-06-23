@@ -233,13 +233,19 @@ export default function App() {
   const [isProductivityPopupOpen, setIsProductivityPopupOpen] = useState(false);
   const [quickActionInitialTab, setQuickActionInitialTab] = useState<"water" | "mood" | "task" | "ai" | "focus">("water");
   const [profileLoaded, setProfileLoaded] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(auth.currentUser?.uid || null);
   
   const { sendNotification } = useNotifications();
   useSensorSync();
 
   const hasCompletedOnboarding = useUserStore(state => state.hasCompletedOnboarding);
-  const _hasHydrated = useHabitsStore(state => state._hasHydrated);
+  const habitsHydrated = useHabitsStore(state => state._hasHydrated);
+  const userHydrated = useUserStore(state => state._hasHydrated);
+  const productivityHydrated = useProductivityStore(state => state._hasHydrated);
+  const settingsHydrated = useSettingsStore(state => state._hasHydrated);
+  
+  const allStoresHydrated = habitsHydrated && userHydrated && productivityHydrated && settingsHydrated;
+  
   const settings = useSettingsStore((state) => state.settings);
   const prayerAlarms = useHabitsStore(state => state.prayerAlarms);
   const schedules = useProductivityStore(state => state.schedules);
@@ -249,7 +255,7 @@ export default function App() {
   const [prayerTimes, setPrayerTimes] = useState<{ name: string; time: string }[]>([]);
 
   // HYDRATION & AUTH LOADING STATE
-  if (!_hasHydrated) {
+  if (!allStoresHydrated) {
     return (
       <div className="min-h-screen bg-surface">
         <HomeSkeleton />
@@ -679,11 +685,11 @@ export default function App() {
             <div className={activeTab === "home" ? "block" : "hidden"}>
               {visitedTabs.home && (
                 <motion.div
-                  animate={activeTab === "home" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "home" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
-                  <Home onNavigate={handleNavigate} onOpenChat={() => openQuickAction("ai")} />
+                  <Home isActive={activeTab === "home"} onNavigate={handleNavigate} onOpenChat={() => openQuickAction("ai")} />
                 </motion.div>
               )}
             </div>
@@ -692,11 +698,12 @@ export default function App() {
             <div className={activeTab === "health" ? "block" : "hidden"}>
               {visitedTabs.health && (
                 <motion.div
-                  animate={activeTab === "health" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "health" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
                   <Health 
+                    isActive={activeTab === "health"}
                     activeTab={healthSubTab} 
                     onTabChange={setHealthSubTab}
                     onOpenChat={() => openQuickAction("ai")} 
@@ -710,11 +717,12 @@ export default function App() {
             <div className={activeTab === "productivity" ? "block" : "hidden"}>
               {visitedTabs.productivity && (
                 <motion.div
-                  animate={activeTab === "productivity" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "productivity" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
                   <Productivity 
+                    isActive={activeTab === "productivity"}
                     activeTab={productivitySubTab} 
                     onTabChange={setProductivitySubTab} 
                   />
@@ -726,11 +734,11 @@ export default function App() {
             <div className={activeTab === "insight" ? "block" : "hidden"}>
               {visitedTabs.insight && (
                 <motion.div
-                  animate={activeTab === "insight" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "insight" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
-                  <Stats onOpenChat={() => openQuickAction("ai")} onNavigate={handleNavigate} />
+                  <Stats isActive={activeTab === "insight"} onOpenChat={() => openQuickAction("ai")} onNavigate={handleNavigate} />
                 </motion.div>
               )}
             </div>
@@ -739,11 +747,11 @@ export default function App() {
             <div className={activeTab === "prayer" ? "block" : "hidden"}>
               {visitedTabs.prayer && (
                 <motion.div
-                  animate={activeTab === "prayer" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "prayer" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
-                  <Prayer />
+                  <Prayer isActive={activeTab === "prayer"} />
                 </motion.div>
               )}
             </div>
@@ -752,11 +760,11 @@ export default function App() {
             <div className={activeTab === "settings" ? "block" : "hidden"}>
               {visitedTabs.settings && (
                 <motion.div
-                  animate={activeTab === "settings" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "settings" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
-                  <SettingsPage />
+                  <SettingsPage isActive={activeTab === "settings"} />
                 </motion.div>
               )}
             </div>
@@ -765,11 +773,11 @@ export default function App() {
             <div className={activeTab === "ai" ? "block" : "hidden"}>
               {visitedTabs.ai && (
                 <motion.div
-                  animate={activeTab === "ai" ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                  initial={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  animate={activeTab === "ai" ? { opacity: 1 } : { opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
                 >
-                  <AIAssistantTab />
+                  <AIAssistantTab isActive={activeTab === "ai"} />
                 </motion.div>
               )}
             </div>

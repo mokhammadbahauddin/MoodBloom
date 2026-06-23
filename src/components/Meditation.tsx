@@ -11,7 +11,7 @@ import { hapticFeedback } from '../lib/haptics';
 
 type SoundType = "rain" | "forest" | "zen" | "meditation" | "none";
 
-export default function Meditation() {
+export default function Meditation({ isActive = true }: { isActive?: boolean }) {
   const meditationLogs = useHabitsStore((state) => state.meditationLogs);
   const removeMeditationLog = useHabitsStore((state) => state.removeMeditationLog);
   const today = getTodayDateString();
@@ -28,6 +28,10 @@ export default function Meditation() {
     { id: 'meditation', label: 'Deep Harmony', icon: <Moon size={22} />, color: "from-indigo-500/20 to-rose-500/10" },
     { id: 'none', label: 'Silent', icon: <Music size={22} />, color: "from-slate-500/20 to-slate-500/10" },
   ];
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   return (
     <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pt-2 md:pt-4">

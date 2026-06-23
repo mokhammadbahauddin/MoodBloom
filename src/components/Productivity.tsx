@@ -6,9 +6,11 @@ import FocusTimer from "./FocusTimer";
 export default function Productivity({
   activeTab = "schedule",
   onTabChange,
+  isActive = true,
 }: {
   activeTab?: "schedule" | "focus";
   onTabChange?: (tab: "schedule" | "focus") => void;
+  isActive?: boolean;
 }) {
   const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({
     [activeTab]: true
@@ -31,7 +33,7 @@ export default function Productivity({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Schedule onStartFocus={() => onTabChange?.("focus")} />
+              <Schedule isActive={isActive && activeTab === "schedule"} onStartFocus={() => onTabChange?.("focus")} />
             </motion.div>
           )}
         </div>
@@ -44,7 +46,7 @@ export default function Productivity({
               initial={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <FocusTimer />
+              <FocusTimer isActive={isActive && activeTab === "focus"} />
             </motion.div>
           )}
         </div>

@@ -14,7 +14,7 @@ import { useSettingsStore } from '../lib/settingsStore';
 import { motion, AnimatePresence } from "motion/react";
 import toast from "react-hot-toast";
 
-export default function FocusTimer() {
+export default function FocusTimer({ isActive = true }: { isActive?: boolean }) {
    const settings = useSettingsStore((state) => state.settings);
    const updateSettings = useSettingsStore((state) => state.updateSettings);
    const setDeepFocusActive = useProductivityStore(state => state.setDeepFocusActive);
@@ -31,6 +31,10 @@ export default function FocusTimer() {
       });
       toast.success("Timer disesuaikan!");
    };
+
+   if (!isActive) {
+      return <div className="min-h-[400px]" />;
+   }
 
    return (
       <div className="space-y-10 pt-4 pb-32 animate-in fade-in duration-500 max-w-2xl mx-auto px-1">

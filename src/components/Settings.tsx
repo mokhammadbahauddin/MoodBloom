@@ -55,7 +55,7 @@ const Slider = ({ value, min, max, step, onChange, label, suffix }: any) => (
   </div>
 );
 
-export default function Settings() {
+export default function Settings({ isActive = true }: { isActive?: boolean }) {
   const { settings, updateSettings } = useSettingsStore();
   const setWaterGoal = useHabitsStore(state => state.setWaterGoal);
   const userName = useUserStore(state => state.userName);
@@ -71,12 +71,14 @@ export default function Settings() {
 
   // Update local inputs when store is updated from cloud/background
   useEffect(() => {
+    if (!isActive) return;
     setLocalName(userName || "");
-  }, [userName]);
+  }, [isActive, userName]);
 
   useEffect(() => {
+    if (!isActive) return;
     setLocalBio(settings?.userBio || "");
-  }, [settings?.userBio]);
+  }, [isActive, settings?.userBio]);
 
   const handleExportData = () => {
     const data = localStorage.getItem("moodbloom-storage");
@@ -110,6 +112,10 @@ export default function Settings() {
   ];
 
   const notificationPreferences = settings?.notificationPreferences || { focus: true, water: true, mood: true };
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   return (
     <div className="pt-4 pb-24 animate-in fade-in duration-300 max-w-lg mx-auto relative h-full flex flex-col">

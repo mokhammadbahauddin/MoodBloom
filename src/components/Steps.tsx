@@ -25,7 +25,7 @@ import confetti from "canvas-confetti";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell } from "recharts";
 import toast from "react-hot-toast";
 
-export default function Steps() {
+export default function Steps({ isActive = true }: { isActive?: boolean }) {
   const stepsLogs = useHabitsStore(state => state.stepsLogs);
   const detailedStepsLogs = useHabitsStore(state => state.detailedStepsLogs);
   const logSteps = useHabitsStore(state => state.logSteps);
@@ -205,6 +205,10 @@ export default function Steps() {
     window.addEventListener("devicemotion", handleMotion);
     return () => window.removeEventListener("devicemotion", handleMotion);
   };
+
+  if (!isActive) {
+    return <div className="min-h-[400px]" />;
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 pb-32">

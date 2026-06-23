@@ -16,7 +16,7 @@ import {
   calculateRadarData
 } from "../utils/statsUtils";
 
-export function useStatsData() {
+export function useStatsData(isActive = true) {
   const [timeRange, setTimeRange] = useState("30D");
   const [isComparison, setIsComparison] = useState(false);
   const [selectedDay, setSelectedDay] = useState<any>(null);
@@ -48,6 +48,7 @@ export function useStatsData() {
   const aiAnalysis = useUserStore((state) => state.aiAnalysis);
   
   const stateForHeuristic = useMemo(() => {
+    if (!isActive) return {} as any;
     return {
       userName,
       waterLogs,
@@ -63,6 +64,7 @@ export function useStatsData() {
       weeklyCoachingReport,
     } as any;
   }, [
+    isActive,
     userName,
     waterLogs,
     moodLogs,
@@ -78,8 +80,9 @@ export function useStatsData() {
   ]);
 
   const streakData = useMemo(() => {
+    if (!isActive) return { currentStreak: 0, totalActive: 0, isActiveToday: false };
     return calculateStreak(moodLogs, waterLogs, baseWaterGoal);
-  }, [moodLogs, waterLogs, baseWaterGoal]);
+  }, [isActive, moodLogs, waterLogs, baseWaterGoal]);
 
   const getPastDateStr = (dateStr: string, subtractDays: number) => {
     const d = new Date(dateStr);
@@ -88,6 +91,7 @@ export function useStatsData() {
   };
 
   const correlationData = useMemo(() => {
+    if (!isActive) return [];
     const past7 = getPast7Days();
     return past7.map((d) => {
       const w = waterLogs[d.dateStr] || 0;
@@ -121,17 +125,20 @@ export function useStatsData() {
         notes: m?.notes || "",
       };
     });
-  }, [waterLogs, moodLogs, stepsLogs, meditationLogs, prayerLogs, focusLogs, baseWaterGoal]);
+  }, [isActive, waterLogs, moodLogs, stepsLogs, meditationLogs, prayerLogs, focusLogs, baseWaterGoal]);
 
   const factorsData = useMemo(() => {
+    if (!isActive) return [];
     return calculateFactorsData(moodLogs);
-  }, [moodLogs]);
+  }, [isActive, moodLogs]);
 
   const averages = useMemo(() => {
+    if (!isActive) return { avgWater: 0, prevAvgWater: 0, avgSleep: 0, prevAvgSleep: 0, avgMood: 0, prevAvgMood: 0 };
     return calculateAverages(correlationData);
-  }, [correlationData]);
+  }, [isActive, correlationData]);
 
   const stats = useMemo(() => {
+    if (!isActive) return [];
     const { avgWater, prevAvgWater, avgSleep, prevAvgSleep, avgMood, prevAvgMood } = averages;
     const waterDelta = (avgWater - prevAvgWater).toFixed(1);
     const sleepDelta = (avgSleep - prevAvgSleep).toFixed(1);
@@ -189,27 +196,32 @@ export function useStatsData() {
         statusColor: avgMood >= 75 ? "text-amber-500" : "text-rose-500",
       },
     ];
-  }, [averages, baseWaterGoal, stateForHeuristic, streakData.totalActive]);
+  }, [isActive, averages, baseWaterGoal, stateForHeuristic, streakData.totalActive]);
 
   const storySummary = useMemo(() => {
+    if (!isActive) return "";
     return generateWeeklySynthesis(stateForHeuristic);
-  }, [stateForHeuristic]);
+  }, [isActive, stateForHeuristic]);
 
   const fullWellnessAnalysis = useMemo(() => {
+    if (!isActive) return { recommendations: [] } as any;
     return generateFullWellnessAnalysis(stateForHeuristic);
-  }, [stateForHeuristic]);
+  }, [isActive, stateForHeuristic]);
 
   const dynamicRecommendations = useMemo(() => {
+    if (!isActive) return [];
     return aiAnalysis?.recommendations || fullWellnessAnalysis.recommendations;
-  }, [aiAnalysis, fullWellnessAnalysis.recommendations]);
+  }, [isActive, aiAnalysis, fullWellnessAnalysis.recommendations]);
 
   const radarData = useMemo(() => {
+    if (!isActive) return [];
     return calculateRadarData(correlationData, baseWaterGoal, stepGoal, focusTarget);
-  }, [correlationData, baseWaterGoal, stepGoal, focusTarget]);
+  }, [isActive, correlationData, baseWaterGoal, stepGoal, focusTarget]);
 
   const predictiveInsight = useMemo(() => {
+    if (!isActive) return "";
     return generatePredictiveInsight(stateForHeuristic);
-  }, [stateForHeuristic]);
+  }, [isActive, stateForHeuristic]);
 
   return {
     timeRange, setTimeRange,
