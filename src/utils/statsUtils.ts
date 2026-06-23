@@ -158,3 +158,170 @@ export function calculateRadarData(
     { subject: "Mood", A: Math.round(avgMood), fullMark: 100 },
   ];
 }
+
+export function calculatePearsonCorrelation(x: number[], y: number[]): number {
+  const n = x.length;
+  if (n < 2) return 0;
+  
+  const meanX = x.reduce((a, b) => a + b, 0) / n;
+  const meanY = y.reduce((a, b) => a + b, 0) / n;
+  
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+  
+  for (let i = 0; i < n; i++) {
+    const diffX = x[i] - meanX;
+    const diffY = y[i] - meanY;
+    num += diffX * diffY;
+    denX += diffX * diffX;
+    denY += diffY * diffY;
+  }
+  
+  if (denX === 0 || denY === 0) return 0;
+  return num / Math.sqrt(denX * denY);
+}
+
+export interface KMeanPoint {
+  date: string;
+  features: [number, number, number, number]; // [sleepHours, waterIntake, steps, moodScore]
+}
+
+export interface KMeansResult {
+  centroids: number[][];
+  points: { point: KMeanPoint; clusterIndex: number }[];
+  clusterDescriptions: string[];
+}
+
+export function runKMeansClustering(data: KMeanPoint[], k = 3, maxIterations = 20): KMeansResult {
+  const n = data.length;
+  if (n === 0) {
+    return { centroids: [], points: [], clusterDescriptions: [] };
+  }
+
+  // 1. Min-Max normalization for features (so steps doesn't dominate other features)
+  const numFeatures = 4;
+  const mins = Array(numFeatures).fill(Infinity);
+  const maxs = Array(numFeatures).fill(-Infinity);
+  
+  data.forEach((p) => {
+    p.features.forEach((v, j) => {
+      if (v < mins[j]) mins[j] = v;
+      if (v > maxs[j]) maxs[j] = v;
+    });
+  });
+
+  const normalizedPoints = data.map((p) => {
+    const normFeatures = p.features.map((v, j) => {
+      const range = maxs[j] - mins[j];
+      return range === 0 ? 0.5 : (v - mins[j]) / range;
+    }) as [number, number, number, number];
+    return { original: p, normFeatures };
+  });
+
+  // 2. Initialize centroids randomly from points
+  let centroids: number[][] = [];
+  const selectedIndices = new Set<number>();
+  while (selectedIndices.size < Math.min(k, n)) {
+    const idx = Math.floor(Math.random() * n);
+    if (!selectedIndices.has(idx)) {
+      selectedIndices.add(idx);
+      centroids.push([...normalizedPoints[idx].normFeatures]);
+    }
+  }
+
+  // Handle case where n < k
+  while (centroids.length < k) {
+    centroids.push([0.5, 0.5, 0.5, 0.5]);
+  }
+
+  let assignments = Array(n).fill(-1);
+  let changed = true;
+  let iteration = 0;
+
+  const getDistance = (v1: number[], v2: number[]) => {
+    return Math.sqrt(v1.reduce((sum, val, idx) => sum + (val - v2[idx]) ** 2, 0));
+  };
+
+  while (changed && iteration < maxIterations) {
+    changed = false;
+    iteration++;
+
+    // Assign points to nearest centroid
+    normalizedPoints.forEach((p, idx) => {
+      let minDist = Infinity;
+      let closestCluster = 0;
+      centroids.forEach((centroid, cIdx) => {
+        const dist = getDistance(p.normFeatures, centroid);
+        if (dist < minDist) {
+          minDist = dist;
+          closestCluster = cIdx;
+        }
+      });
+
+      if (assignments[idx] !== closestCluster) {
+        assignments[idx] = closestCluster;
+        changed = true;
+      }
+    });
+
+    // Recompute centroids
+    const sums = Array.from({ length: k }, () => Array(numFeatures).fill(0));
+    const counts = Array(k).fill(0);
+
+    assignments.forEach((cIdx, idx) => {
+      normalizedPoints[idx].normFeatures.forEach((v, j) => {
+        sums[cIdx][j] += v;
+      });
+      counts[cIdx]++;
+    });
+
+    for (let cIdx = 0; cIdx < k; cIdx++) {
+      if (counts[cIdx] > 0) {
+        centroids[cIdx] = sums[cIdx].map((s) => s / counts[cIdx]);
+      }
+    }
+  }
+
+  // Denormalize centroids to display original scale coordinates
+  const denormalizedCentroids = centroids.map((c) => {
+    return c.map((v, j) => {
+      const range = maxs[j] - mins[j];
+      return mins[j] + v * range;
+    });
+  });
+
+  // Compile final results
+  const resultPoints = data.map((p, idx) => ({
+    point: p,
+    clusterIndex: assignments[idx],
+  }));
+
+  // Analyze clusters to assign descriptive labels based on denormalized centroids
+  // Centroid feature structure: [sleepHours, waterIntake, steps, moodScore]
+  const clusterScores = denormalizedCentroids.map((c, idx) => {
+    // Score based on average normalized components: sleep / 8, water / 2, steps / 5000, mood / 100
+    const sleepNorm = c[0] / 8;
+    const waterNorm = c[1] / 2;
+    const stepNorm = c[2] / 5000;
+    const moodNorm = c[3] / 100;
+    const overallScore = (sleepNorm + waterNorm + stepNorm + moodNorm) / 4;
+    return { index: idx, score: overallScore };
+  });
+
+  // Sort clusters by score: highest score is Cluster 1, lowest is Cluster 3
+  const sortedClusters = [...clusterScores].sort((a, b) => b.score - a.score);
+  
+  const clusterDescriptions = Array(k).fill("");
+  const nameMapping = ["Oasis (Sehat & Produktif)", "Seimbang (Normal / Cukup)", "Kritis (Stres & Kurang Istirahat/Hidrasi)"];
+  
+  sortedClusters.forEach((c, rankIdx) => {
+    clusterDescriptions[c.index] = nameMapping[rankIdx] || "Klaster Kustom";
+  });
+
+  return {
+    centroids: denormalizedCentroids,
+    points: resultPoints,
+    clusterDescriptions,
+  };
+}

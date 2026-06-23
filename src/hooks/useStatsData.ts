@@ -13,7 +13,11 @@ import {
   mapEnergyToLevel,
   calculateAverages,
   calculateFactorsData,
-  calculateRadarData
+  calculateRadarData,
+  calculatePearsonCorrelation,
+  runKMeansClustering,
+  KMeanPoint,
+  KMeansResult
 } from "../utils/statsUtils";
 
 export function useStatsData(isActive = true) {
@@ -223,6 +227,75 @@ export function useStatsData(isActive = true) {
     return generatePredictiveInsight(stateForHeuristic);
   }, [isActive, stateForHeuristic]);
 
+  function getCorrelationDesc(r: number): string {
+    if (isNaN(r) || r === 0) return "Tidak cukup data";
+    const absR = Math.abs(r);
+    let strength = "";
+    if (absR >= 0.7) strength = "Sangat Kuat";
+    else if (absR >= 0.4) strength = "Sedang / Signifikan";
+    else if (absR >= 0.1) strength = "Lemah";
+    else strength = "Sangat Lemah";
+    
+    return `${strength} (${r >= 0 ? "Positif" : "Negatif"})`;
+  }
+
+  const { correlationResults, kmeansResult } = useMemo(() => {
+    if (!isActive) {
+      return {
+        correlationResults: [],
+        kmeansResult: { centroids: [], points: [], clusterDescriptions: [] } as KMeansResult
+      };
+    }
+    
+    const allDates = Array.from(new Set([
+      ...Object.keys(moodLogs),
+      ...Object.keys(waterLogs),
+      ...Object.keys(stepsLogs)
+    ])).sort();
+    
+    const sleepArray: number[] = [];
+    const waterArray: number[] = [];
+    const stepsArray: number[] = [];
+    const moodArray: number[] = [];
+    
+    const points: KMeanPoint[] = [];
+    
+    allDates.forEach((dateStr) => {
+      const w = waterLogs[dateStr] || 0;
+      const m = moodLogs[dateStr];
+      const s = stepsLogs[dateStr] || 0;
+      
+      const sleepHours = m ? mapSleepToHours(m.sleepValue) : 0;
+      const moodScore = m ? mapMoodToScore(m.moodValue) : 0;
+      
+      if (m) {
+        sleepArray.push(sleepHours);
+        waterArray.push(w);
+        stepsArray.push(s);
+        moodArray.push(moodScore);
+      }
+      
+      points.push({
+        date: dateStr,
+        features: [sleepHours || 6, w || 1.5, s || 3000, moodScore || 60]
+      });
+    });
+    
+    const rSleep = calculatePearsonCorrelation(sleepArray, moodArray);
+    const rWater = calculatePearsonCorrelation(waterArray, moodArray);
+    const rSteps = calculatePearsonCorrelation(stepsArray, moodArray);
+    
+    const correlationResults = [
+      { name: "Durasi Tidur", r: rSleep, desc: getCorrelationDesc(rSleep) },
+      { name: "Asupan Air", r: rWater, desc: getCorrelationDesc(rWater) },
+      { name: "Langkah Kaki", r: rSteps, desc: getCorrelationDesc(rSteps) },
+    ];
+    
+    const kmeansResult = runKMeansClustering(points, Math.min(3, points.length));
+    
+    return { correlationResults, kmeansResult };
+  }, [isActive, moodLogs, waterLogs, stepsLogs]);
+
   return {
     timeRange, setTimeRange,
     isComparison, setIsComparison,
@@ -232,6 +305,7 @@ export function useStatsData(isActive = true) {
     storySummary, fullWellnessAnalysis, dynamicRecommendations, radarData,
     predictiveInsight,
     mapSleepToHours, mapEnergyToLevel, stateForHeuristic,
-    baseWaterGoal, weeklyCoachingReport, aiAnalysis
+    baseWaterGoal, weeklyCoachingReport, aiAnalysis,
+    correlationResults, kmeansResult
   };
 }

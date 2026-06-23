@@ -59,7 +59,7 @@ export default function Stats({
     streakData, correlationData, factorsData, stats,
     storySummary, dynamicRecommendations, radarData,
     predictiveInsight, mapSleepToHours, mapEnergyToLevel, baseWaterGoal,
-    weeklyCoachingReport, aiAnalysis
+    weeklyCoachingReport, aiAnalysis, correlationResults, kmeansResult
   } = useStatsData(isActive);
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -577,6 +577,131 @@ export default function Stats({
                 </div>
              </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Sains Data & Analisis Algoritma */}
+        <motion.div variants={itemVariants} className="space-y-4">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-outline/10">
+              <Database size={16} />
+            </div>
+            <div>
+              <h3 className="font-headline text-xl font-bold text-on-surface tracking-tight">Algoritma Sains Data</h3>
+              <p className="text-on-surface-variant font-medium text-[9px] opacity-75 uppercase tracking-wider">Komputasi Statistik & Klasterisasi K-Means</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Pearson Correlation Card */}
+            <Card className="p-5 md:p-6 border border-outline/20 shadow-sm bg-surface flex flex-col rounded-2xl">
+              <CardHeader className="p-0 flex items-center gap-3 mb-6 border-b border-outline/10 pb-4 space-y-0 flex-row">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-outline/10 text-primary">
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <CardTitle className="font-headline font-bold text-base text-on-surface tracking-tight">Analisis Korelasi Pearson</CardTitle>
+                  <CardDescription className="text-[10px] font-semibold text-on-surface-variant opacity-75 uppercase tracking-wider mt-0.5">Hubungan Variabel dengan Mood</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 space-y-5 flex flex-col justify-center">
+                {correlationResults && correlationResults.length > 0 ? (
+                  correlationResults.map((item: any) => {
+                    const absR = Math.abs(item.r || 0);
+                    const percentage = Math.round(absR * 100);
+                    const isPositive = (item.r || 0) >= 0;
+                    
+                    return (
+                      <div key={item.name} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-on-surface">{item.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-on-surface-variant">{item.desc}</span>
+                            <span className={`px-2 py-0.5 text-[10px] font-black rounded-lg ${isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"}`}>
+                              r = {item.r ? (isPositive ? "+" : "") + item.r.toFixed(2) : "0.00"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden border border-outline/5">
+                          <div 
+                            className={`h-full ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`} 
+                            style={{ width: `${Math.max(5, percentage)}%` }} 
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-on-surface-variant text-center py-4">Belum cukup data log untuk menghitung korelasi.</p>
+                )}
+                <p className="text-[10px] text-on-surface-variant/70 leading-relaxed border-l-2 border-primary/20 pl-3 mt-2">
+                  *Korelasi Pearson mengukur keeratan hubungan linier antara parameter gaya hidup dan kesehatan mental Anda. Rentang skor antara -1.00 hingga +1.00.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* K-Means Clustering Card */}
+            <Card className="p-5 md:p-6 border border-outline/20 shadow-sm bg-surface flex flex-col rounded-2xl">
+              <CardHeader className="p-0 flex items-center gap-3 mb-6 border-b border-outline/10 pb-4 space-y-0 flex-row">
+                <div className="w-10 h-10 rounded-2xl bg-secondary/10 flex items-center justify-center shrink-0 border border-outline/10 text-secondary">
+                  <Layers size={20} />
+                </div>
+                <div>
+                  <CardTitle className="font-headline font-bold text-base text-on-surface tracking-tight">Segmentasi K-Means Clustering</CardTitle>
+                  <CardDescription className="text-[10px] font-semibold text-on-surface-variant opacity-75 uppercase tracking-wider mt-0.5">Pengelompokan Status Kesehatan (k=3)</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 flex flex-col justify-between gap-4">
+                {kmeansResult && kmeansResult.points && kmeansResult.points.length > 0 ? (
+                  (() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayAssignment = kmeansResult.points.find((p: any) => p.point.date === todayStr);
+                    const todayClusterIdx = todayAssignment ? todayAssignment.clusterIndex : 0;
+                    const todayClusterLabel = kmeansResult.clusterDescriptions[todayClusterIdx] || "Mengevaluasi...";
+                    
+                    let clusterCardColor = "bg-primary/5 border-primary/10 text-primary";
+                    let advice = "Pertahankan konsistensi tidur dan olahraga Anda.";
+                    
+                    if (todayClusterLabel.includes("Oasis")) {
+                      clusterCardColor = "bg-emerald-500/5 border-emerald-500/10 text-emerald-600";
+                      advice = "Luar biasa! Hari Anda berada dalam kondisi puncak fisik & mental yang sangat baik.";
+                    } else if (todayClusterLabel.includes("Kritis")) {
+                      clusterCardColor = "bg-rose-500/5 border-rose-500/10 text-rose-600";
+                      advice = "Waspada! Tubuh Anda menunjukkan tanda lelah atau dehidrasi. Segera istirahat dan minum air.";
+                    } else {
+                      clusterCardColor = "bg-amber-500/5 border-amber-500/10 text-amber-600";
+                      advice = "Status Anda hari ini cukup berimbang, namun cobalah untuk tidur lebih awal.";
+                    }
+
+                    return (
+                      <div className="space-y-4 w-full">
+                        {/* Centroid Info */}
+                        <div className="text-[11px] text-on-surface-variant font-medium space-y-1 bg-surface-container-low p-3 rounded-xl border border-outline/5">
+                          <p className="font-bold text-on-surface uppercase text-[9px] tracking-wider mb-2 opacity-70">Pusat Klaster Terbentuk (Centroids):</p>
+                          {kmeansResult.centroids.map((centroid: number[], idx: number) => (
+                            <div key={idx} className="flex justify-between items-center">
+                              <span className="font-semibold text-on-surface">{kmeansResult.clusterDescriptions[idx] || `Klaster ${idx + 1}`}</span>
+                              <span className="opacity-80">
+                                Tidur: {centroid[0].toFixed(1)}j • Air: {centroid[1].toFixed(1)}L • Jalan: {Math.round(centroid[2])} lk • Mood: {Math.round(centroid[3])}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Today's Cluster */}
+                        <div className={`p-4 rounded-xl border ${clusterCardColor} flex flex-col gap-1`}>
+                          <span className="text-[9px] font-black uppercase tracking-wider opacity-60">Status Klaster Anda Hari Ini</span>
+                          <span className="text-base font-black tracking-tight leading-tight">{todayClusterLabel}</span>
+                          <p className="text-xs font-semibold mt-1.5 opacity-90">{advice}</p>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-xs text-on-surface-variant text-center py-4">Belum cukup data riwayat untuk melakukan klasterisasi.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </motion.div>
 
         {/* Intelligence Hub AI Panel */}
