@@ -427,7 +427,10 @@ export default function Mood({
           </div>
           <Button 
             variant="secondary"
-            onClick={() => setIsSaved(false)}
+            onClick={() => {
+              setIsSaved(false);
+              onNavigate?.("insight");
+            }}
             className="mt-2 rounded-xl"
           >
             Lihat Analisis Saya
@@ -829,7 +832,7 @@ export default function Mood({
                 </div>
                 {onNavigate && (
                   <Button 
-                    onClick={() => onNavigate("stats")} 
+                    onClick={() => onNavigate("insight")} 
                     className="w-full py-3 text-sm font-bold bg-primary text-white hover:bg-primary-dim transition-all shadow-sm rounded-xl flex items-center justify-center gap-2"
                   >
                     Lihat Analisis Saya
